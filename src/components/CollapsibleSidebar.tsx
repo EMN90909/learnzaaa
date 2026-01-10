@@ -7,7 +7,7 @@ import { Home, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CollapsibleSidebarProps {
-  children?: React.ReactNode; // Made children optional
+  children?: React.ReactNode;
 }
 
 const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ children }) => {
@@ -43,8 +43,11 @@ const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ children }) => 
             {isOpen && <span>Lessons</span>}
           </Link>
         </Button>
-        {/* The children prop will render the Add Learner button or other specific tools */}
-        {children}
+        {children && (
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            {children}
+          </div>
+        )}
       </nav>
     </div>
   );
