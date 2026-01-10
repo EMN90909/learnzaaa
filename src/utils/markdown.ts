@@ -1,12 +1,12 @@
 import { remark } from 'remark';
-import html from 'remark-html';
+import remarkHtml from 'remark-html';
 import remarkGfm from 'remark-gfm';
 
 export const convertMarkdownToHtml = async (markdown: string): Promise<string> => {
   try {
     const result = await remark()
       .use(remarkGfm)
-      .use(html)
+      .use(remarkHtml)
       .process(markdown);
     return result.toString();
   } catch (error) {

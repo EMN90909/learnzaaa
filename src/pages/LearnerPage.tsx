@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, BookOpen, Star, Award, Upload, LogOut, ChevronLeft, Home, Menu, CheckCircle } from 'lucide-react';
+import { Loader2, BookOpen, Star, Award, Upload, LogOut, Menu, CheckCircle, Lightbulb, PartyPopper, Copy, Check, AlertCircle, Files, X, GraduationCap } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -97,6 +97,8 @@ const LearnerPage: React.FC = () => {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [quizAttempts, setQuizAttempts] = useState<{quizId: string, chosenIndex: number, correct: boolean}[]>([]);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   // Calculate age group based on DOB
@@ -115,7 +117,7 @@ const LearnerPage: React.FC = () => {
     return 'older';
   };
 
-  // Get age group specific styles
+  // Get age group specific styles and content
   const getAgeGroupStyles = () => {
     const baseStyles = {
       buttonSize: 'medium',
@@ -128,7 +130,10 @@ const LearnerPage: React.FC = () => {
         primary: 'bg-blue-600',
         secondary: 'bg-green-600',
         accent: 'bg-purple-600'
-      }
+      },
+      emoji: '🎉',
+      encouragement: 'Great job!',
+      challengeText: 'Ready for a challenge?'
     };
 
     switch (ageGroup) {
@@ -145,7 +150,10 @@ const LearnerPage: React.FC = () => {
             primary: 'bg-blue-500',
             secondary: 'bg-green-500',
             accent: 'bg-purple-500'
-          }
+          },
+          emoji: '🎈',
+          encouragement: 'Awesome work!',
+          challengeText: 'Want to try something fun?'
         };
       case 'middle':
         return {
@@ -160,7 +168,10 @@ const LearnerPage: React.FC = () => {
             primary: 'bg-blue-600',
             secondary: 'bg-green-600',
             accent: 'bg-purple-600'
-          }
+          },
+          emoji: '🚀',
+          encouragement: 'You got this!',
+          challengeText: 'Ready for the next level?'
         };
       case 'older':
         return {
@@ -175,7 +186,10 @@ const LearnerPage: React.FC = () => {
             primary: 'bg-blue-700',
             secondary: 'bg-green-700',
             accent: 'bg-purple-700'
-          }
+          },
+          emoji: '💡',
+          encouragement: 'Keep going!',
+          challengeText: 'Challenge accepted?'
         };
     }
   };
@@ -265,7 +279,7 @@ const LearnerPage: React.FC = () => {
       if (homeworkError) throw homeworkError;
       setHomework(homeworkData || []);
 
-      showSuccess('Dashboard loaded successfully!');
+      showSuccess(`Welcome back, ${parsedLearner.name}! ${ageStyles.emoji}`);
     } catch (error: any) {
       showError('Failed to load dashboard: ' + error.message);
       console.error('Error loading dashboard:', error);
@@ -280,7 +294,7 @@ const LearnerPage: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('learnerData');
-    showSuccess('Logged out successfully!');
+    showSuccess('See you next time! 👋');
     navigate('/learner-auth');
   };
 
@@ -296,7 +310,7 @@ const LearnerPage: React.FC = () => {
       // Check if already completed
       const existingProgress = progressData.find(p => p.lesson_id === currentLesson.id);
       if (existingProgress?.completed) {
-        showError('Lesson already marked as completed');
+        showError('You already completed this lesson! 🎉');
         return;
       }
 
@@ -375,9 +389,9 @@ const LearnerPage: React.FC = () => {
         }]);
       }
 
-      showSuccess(`Lesson completed! +${pointsReward} points, +${xpReward} XP`);
+      showSuccess(`${ageStyles.encouragement} +${pointsReward} 💎, +${xpReward} ⚡`);
     } catch (error: any) {
-      showError('Failed to mark lesson as completed: ' + error.message);
+      showError('Oops! Something went wrong: ' + error.message);
       console.error('Error marking lesson as completed:', error);
     }
   };
@@ -439,7 +453,7 @@ const LearnerPage: React.FC = () => {
       setPointsBalance(prev => ({ ...prev!, points: (prev?.points || 0) + pointsAwarded }));
       setXpBalance(prev => ({ ...prev!, xp: (prev?.xp || 0) + xpAwarded }));
 
-      showSuccess(`Correct! +${pointsAwarded} points, +${xpAwarded} XP`);
+      showSuccess(`🎉 Correct! +${pointsAwarded} 💎, +${xpAwarded} ⚡`);
 
       // Record quiz attempt
       await supabase.from('quiz_attempts').insert({
@@ -451,7 +465,7 @@ const LearnerPage: React.FC = () => {
         created_at: new Date().toISOString()
       });
     } else {
-      showError('Incorrect answer. Try again!');
+      showError('❌ Not quite! Try again!');
     }
   };
 
@@ -460,7 +474,7 @@ const LearnerPage: React.FC = () => {
     if (!quiz || !learner || !pointsBalance) return;
 
     if (pointsBalance.points < quiz.reveal_cost) {
-      showError(`You need ${quiz.reveal_cost} points to reveal the answer. Complete more lessons to earn points!`);
+      showError(`You need ${quiz.reveal_cost} 💎 to reveal the answer. Complete more lessons to earn points!`);
       return;
     }
 
@@ -478,18 +492,18 @@ const LearnerPage: React.FC = () => {
     // Update local state
     setPointsBalance(prev => ({ ...prev!, points: prev.points - quiz.reveal_cost }));
 
-    showSuccess(`Answer revealed! -${quiz.reveal_cost} points. Use hints wisely!`);
+    showSuccess(`Answer revealed! -${quiz.reveal_cost} 💎. Use hints wisely!`);
     return true;
   };
 
   const getLevelFromXP = (xp: number) => {
-    if (xp >= 3000) return { level: 4, name: 'Master', progress: 100 };
-    if (xp >= 1500) return { level: 3, name: 'Explorer', progress: Math.min(100, ((xp - 1500) / 1500) * 100) };
-    if (xp >= 500) return { level: 2, name: 'Learner', progress: Math.min(100, ((xp - 500) / 1000) * 100) };
-    return { level: 1, name: 'Beginner', progress: Math.min(100, (xp / 500) * 100) };
+    if (xp >= 3000) return { level: 4, name: 'Master', progress: 100, emoji: '🏆' };
+    if (xp >= 1500) return { level: 3, name: 'Explorer', progress: Math.min(100, ((xp - 1500) / 1500) * 100), emoji: '🌟' };
+    if (xp >= 500) return { level: 2, name: 'Learner', progress: Math.min(100, ((xp - 500) / 1000) * 100), emoji: '📚' };
+    return { level: 1, name: 'Beginner', progress: Math.min(100, (xp / 500) * 100), emoji: '🐣' };
   };
 
-  const levelInfo = xpBalance ? getLevelFromXP(xpBalance.xp) : { level: 1, name: 'Beginner', progress: 0 };
+  const levelInfo = xpBalance ? getLevelFromXP(xpBalance.xp) : { level: 1, name: 'Beginner', progress: 0, emoji: '🐣' };
 
   const completedLessons = progressData.filter(p => p.completed).length;
   const totalLessons = lessons.length;
@@ -501,46 +515,98 @@ const LearnerPage: React.FC = () => {
     fetchData(); // Refresh data after homework upload
   };
 
+  const copyToClipboard = () => {
+    const textToCopy = `My Learnzaa Progress:
+💎 Points: ${pointsBalance?.points || 0}
+⚡ XP: ${xpBalance?.xp || 0}
+🏆 Level: ${levelInfo.level} ${levelInfo.name} ${levelInfo.emoji}
+📚 Lessons Completed: ${completedLessons}/${totalLessons} (${completionRate.toFixed(0)}%)`;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopied(true);
+      showSuccess('Progress copied to clipboard! 📋');
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      showError('Could not copy to clipboard');
+    });
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="text-center">
+          <div className="animate-spin mb-4">
+            <BookOpen className="h-16 w-16 text-blue-600" />
+          </div>
+          <p className="text-xl font-semibold text-blue-600">Loading your learning adventure...</p>
+        </div>
       </div>
     );
   }
 
   if (!learner) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-center text-gray-600">Please login to access your dashboard</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <Card className="w-full max-w-md text-center p-8">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Welcome to Learnzaa!</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-6">Please login to start your learning journey</p>
+            <Button onClick={() => navigate('/learner-auth')} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <GraduationCap className="h-4 w-4 mr-2" />
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Mobile Header */}
-      <div className="md:hidden bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
+      <div className="md:hidden bg-white/80 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center">
         <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(!showMobileMenu)}>
-          <Menu className="h-6 w-6" />
+          <Menu className="h-6 w-6 text-blue-600" />
         </Button>
-        <div className="text-xl font-bold text-blue-600 dark:text-blue-400">Learnzaa</div>
-        <Button variant="ghost" size="icon" onClick={handleLogout}>
-          <LogOut className="h-5 w-5 text-red-500" />
-        </Button>
+        <div className="text-xl font-bold text-blue-600">Learnzaa</div>
+        <div className="relative">
+          <Avatar className="h-8 w-8 cursor-pointer" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+            <AvatarFallback className="bg-blue-600 text-white">
+              {learner.name.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {showProfileMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+              <div className="p-4 border-b">
+                <p className="font-semibold">{learner.name}</p>
+                <p className="text-sm text-gray-500">{learner.grade}</p>
+              </div>
+              <Button
+                onClick={handleLogout}
+                className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                variant="ghost"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile Menu */}
       {showMobileMenu && (
-        <div className="md:hidden bg-white dark:bg-gray-800 border-b p-4 space-y-2">
+        <div className="md:hidden bg-white/90 backdrop-blur-sm border-b p-4 space-y-2">
           <Button variant="ghost" className="w-full justify-start" onClick={() => { setActiveTab('lessons'); setShowMobileMenu(false); }}>
-            <BookOpen className="h-4 w-4 mr-2" /> Lessons
+            <BookOpen className="h-4 w-4 mr-2 text-blue-600" /> My Lessons
           </Button>
           <Button variant="ghost" className="w-full justify-start" onClick={() => { setActiveTab('progress'); setShowMobileMenu(false); }}>
-            <Star className="h-4 w-4 mr-2" /> My Progress
+            <Star className="h-4 w-4 mr-2 text-yellow-500" /> My Progress
           </Button>
           <Button variant="ghost" className="w-full justify-start" onClick={() => { setActiveTab('help'); setShowMobileMenu(false); }}>
-            <Award className="h-4 w-4 mr-2" /> Help
+            <Lightbulb className="h-4 w-4 mr-2 text-green-500" /> Help Center
           </Button>
         </div>
       )}
@@ -549,62 +615,73 @@ const LearnerPage: React.FC = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="hidden md:block">
-            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Learnzaa</h1>
+            <h1 className="text-3xl font-bold text-blue-600">Learnzaa</h1>
           </div>
-          <Button variant="ghost" onClick={handleLogout} className="hidden md:flex text-red-500 hover:text-red-600">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
+          <div className="hidden md:flex items-center space-x-4">
+            <Button
+              onClick={copyToClipboard}
+              className="flex items-center gap-2 bg-white hover:bg-gray-50 shadow-sm border"
+            >
+              {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-blue-600" />}
+              {copied ? 'Copied!' : 'Copy Progress'}
+            </Button>
+            <div className="relative">
+              <Avatar className="h-10 w-10 cursor-pointer" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+                <AvatarFallback className="bg-blue-600 text-white">
+                  {learner.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+                  <div className="p-4 border-b">
+                    <p className="font-semibold">{learner.name}</p>
+                    <p className="text-sm text-gray-500">{learner.grade}</p>
+                  </div>
+                  <Button
+                    onClick={handleLogout}
+                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                    variant="ghost"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        {/* Breadcrumb */}
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/learner-dashboard" className="flex items-center">
-                  <Home className="h-4 w-4 mr-1" />
-                  Home
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{currentLesson?.subject || 'Subject'}</BreadcrumbPage>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{currentLesson?.title || 'Lesson'}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
 
         {/* Learner Info Header */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div className="flex items-center space-x-4">
-            <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-blue-600 text-white">
-                {learner.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-16 w-16 border-4 border-blue-100">
+                <AvatarFallback className="bg-blue-600 text-white text-xl">
+                  {learner.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full border-2 border-white">
+                {levelInfo.emoji} Lvl {levelInfo.level}
+              </span>
+            </div>
             <div>
               <h2 className="text-2xl font-bold">{learner.name}</h2>
-              <p className="text-gray-600 dark:text-gray-400">{learner.grade}</p>
+              <p className="text-gray-600">{learner.grade}</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            <Card className="p-3">
+            <Card className="p-3 bg-yellow-50 border-yellow-200">
               <div className="flex items-center space-x-2">
-                <Star className="h-5 w-5 text-yellow-500" />
+                <Star className="h-6 w-6 text-yellow-500" />
                 <span className="text-2xl font-bold">{pointsBalance?.points || 0}</span>
-                <span className="text-sm text-gray-500">Points</span>
+                <span className="text-sm text-gray-500">💎</span>
               </div>
             </Card>
 
-            <Card className="p-3">
+            <Card className="p-3 bg-purple-50 border-purple-200">
               <div className="flex items-center space-x-2">
-                <Award className="h-5 w-5 text-purple-500" />
+                <Award className="h-6 w-6 text-purple-500" />
                 <div className="text-center">
                   <div className="text-lg font-bold">Level {levelInfo.level}</div>
                   <div className="text-sm text-gray-500">{levelInfo.name}</div>
@@ -613,9 +690,9 @@ const LearnerPage: React.FC = () => {
               </div>
             </Card>
 
-            <Card className="p-3">
+            <Card className="p-3 bg-green-50 border-green-200">
               <div className="flex items-center space-x-2">
-                <BookOpen className="h-5 w-5 text-green-500" />
+                <BookOpen className="h-6 w-6 text-green-500" />
                 <div className="text-center">
                   <div className="text-lg font-bold">{completionRate.toFixed(0)}%</div>
                   <div className="text-sm text-gray-500">Progress</div>
@@ -630,21 +707,33 @@ const LearnerPage: React.FC = () => {
           {/* Left Column - Content */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="lessons">Lessons</TabsTrigger>
-                <TabsTrigger value="progress">My Progress</TabsTrigger>
-                <TabsTrigger value="help">Help</TabsTrigger>
+              <TabsList className="grid grid-cols-3 bg-white/50 backdrop-blur-sm">
+                <TabsTrigger value="lessons" className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" /> Lessons
+                </TabsTrigger>
+                <TabsTrigger value="progress" className="flex items-center gap-2">
+                  <Star className="h-4 w-4" /> Progress
+                </TabsTrigger>
+                <TabsTrigger value="help" className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4" /> Help
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="lessons">
                 <div className="space-y-6">
                   {currentLesson ? (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-2xl">{currentLesson.title}</CardTitle>
-                        <CardDescription className="text-lg">{currentLesson.subject}</CardDescription>
+                    <Card className="border-2 border-blue-100">
+                      <CardHeader className="bg-blue-50">
+                        <CardTitle className="text-2xl flex items-center gap-2">
+                          <BookOpen className="text-blue-600" /> {currentLesson.title}
+                        </CardTitle>
+                        <CardDescription className="text-lg flex items-center gap-2">
+                          <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-sm font-medium">
+                            {currentLesson.subject}
+                          </span>
+                        </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="mt-4">
                         <div className="prose dark:prose-invert max-w-none">
                           {/* Render markdown content using MarkdownRenderer */}
                           <MarkdownRenderer content={currentLesson.md_content} ageGroup={ageGroup} />
@@ -670,37 +759,47 @@ const LearnerPage: React.FC = () => {
                               disabled={progressData.some(p => p.lesson_id === currentLesson.id && p.completed)}
                             >
                               {progressData.some(p => p.lesson_id === currentLesson.id && p.completed)
-                                ? 'Lesson Completed ✅'
-                                : 'Mark as Done'}
+                                ? <span className="flex items-center gap-2">✅ Lesson Completed {ageStyles.emoji}</span>
+                                : <span className="flex items-center gap-2">🎯 Mark as Done</span>}
                             </Button>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card>
-                      <CardContent className="text-center p-8">
-                        <p className="text-gray-600 dark:text-gray-400">No lesson selected</p>
+                    <Card className="text-center p-8 bg-white/50">
+                      <CardContent>
+                        <div className="mb-4">
+                          <BookOpen className="h-12 w-12 text-blue-300 mx-auto" />
+                        </div>
+                        <p className="text-gray-600">No lesson selected</p>
+                        <p className="text-sm text-gray-500 mt-2">Choose a lesson from the sidebar to get started!</p>
                       </CardContent>
                     </Card>
                   )}
 
                   {/* Quizzes for current lesson */}
                   {lessonQuizzes.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Lesson Quizzes</CardTitle>
-                        <CardDescription>Test your understanding with these quizzes</CardDescription>
+                    <Card className="border-2 border-green-100">
+                      <CardHeader className="bg-green-50">
+                        <CardTitle className="flex items-center gap-2">
+                          <Lightbulb className="text-green-600" /> Lesson Quizzes
+                        </CardTitle>
+                        <CardDescription>Test your understanding and earn points!</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
                           {lessonQuizzes.map((quiz) => (
-                            <Card key={quiz.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleQuizSelect(quiz)}>
+                            <Card
+                              key={quiz.id}
+                              className="hover:shadow-md transition-shadow cursor-pointer border border-green-100"
+                              onClick={() => handleQuizSelect(quiz)}
+                            >
                               <CardContent className="p-4">
                                 <div className="flex justify-between items-center">
                                   <div>
                                     <h3 className="font-semibold">{quiz.question}</h3>
-                                    <p className="text-sm text-gray-500">Reward: {quiz.points_reward} points</p>
+                                    <p className="text-sm text-gray-500 mt-1">Reward: {quiz.points_reward} 💎</p>
                                   </div>
                                   <Button
                                     size="sm"
@@ -724,144 +823,223 @@ const LearnerPage: React.FC = () => {
 
               <TabsContent value="progress">
                 <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>My Learning Progress</CardTitle>
-                      <CardDescription>Track your completed lessons and achievements</CardDescription>
+                  <Card className="border-2 border-yellow-100">
+                    <CardHeader className="bg-yellow-50">
+                      <CardTitle className="flex items-center gap-2">
+                        <Star className="text-yellow-500" /> My Learning Journey
+                      </CardTitle>
+                      <CardDescription>Track your progress and achievements</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">Lessons Completed</span>
-                          <span className="text-2xl font-bold">{completedLessons}/{totalLessons}</span>
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="text-center p-4 bg-white rounded-lg border">
+                            <div className="text-3xl font-bold text-blue-600">{completedLessons}</div>
+                            <div className="text-sm text-gray-500 mt-1">Lessons Completed</div>
+                          </div>
+                          <div className="text-center p-4 bg-white rounded-lg border">
+                            <div className="text-3xl font-bold text-yellow-600">{pointsBalance?.points || 0}</div>
+                            <div className="text-sm text-gray-500 mt-1">💎 Total Points</div>
+                          </div>
+                          <div className="text-center p-4 bg-white rounded-lg border">
+                            <div className="text-3xl font-bold text-purple-600">{xpBalance?.xp || 0}</div>
+                            <div className="text-sm text-gray-500 mt-1">⚡ Total XP</div>
+                          </div>
+                          <div className="text-center p-4 bg-white rounded-lg border">
+                            <div className="text-3xl font-bold text-green-600">{completionRate.toFixed(0)}%</div>
+                            <div className="text-sm text-gray-500 mt-1">Completion Rate</div>
+                          </div>
                         </div>
-                        <Progress value={completionRate} className="h-3" />
-                        <div className="grid grid-cols-2 gap-4 mt-6">
-                          <div>
-                            <p className="text-sm text-gray-500">Total Points</p>
-                            <p className="text-2xl font-bold">{pointsBalance?.points || 0}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500">Total XP</p>
-                            <p className="text-2xl font-bold">{xpBalance?.xp || 0}</p>
-                          </div>
+
+                        <div className="mt-6">
+                          <h3 className="font-semibold mb-3 flex items-center gap-2">
+                            <CheckCircle className="text-green-500" /> Completed Lessons
+                          </h3>
+                          {progressData.filter(p => p.completed).length === 0 ? (
+                            <div className="text-center py-8 bg-gray-50 rounded-lg">
+                              <p className="text-gray-500 mb-2">No lessons completed yet</p>
+                              <p className="text-sm text-gray-400">Start learning to see your progress here!</p>
+                              <Button
+                                onClick={() => setActiveTab('lessons')}
+                                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                <BookOpen className="h-4 w-4 mr-2" />
+                                Start Learning
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {progressData.filter(p => p.completed).map((progress) => {
+                                const lesson = lessons.find(l => l.id === progress.lesson_id);
+                                return lesson ? (
+                                  <div key={progress.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                                    <div className="flex items-center space-x-3">
+                                      <CheckCircle className="h-5 w-5 text-green-500" />
+                                      <div>
+                                        <p className="font-medium">{lesson.title}</p>
+                                        <p className="text-sm text-gray-500">{lesson.subject}</p>
+                                      </div>
+                                    </div>
+                                    <Badge variant="default" className="bg-green-100 text-green-800">
+                                      Completed ✅
+                                    </Badge>
+                                  </div>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Homework Section */}
+                        <div className="mt-6">
+                          <h3 className="font-semibold mb-3 flex items-center gap-2">
+                            <Upload className="text-blue-500" /> My Homework
+                          </h3>
+                          {homework.length === 0 ? (
+                            <div className="text-center py-8 bg-gray-50 rounded-lg">
+                              <p className="text-gray-500 mb-2">No homework uploaded yet</p>
+                              <p className="text-sm text-gray-400">Upload your completed work to get feedback!</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {homework.map((hw) => {
+                                const lesson = lessons.find(l => l.id === hw.lesson_id);
+                                const fileType = hw.file_url.split('.').pop()?.toUpperCase();
+                                const fileIcon = fileType === 'PDF' ? <FilePdf className="h-5 w-5" /> :
+                                              (['JPG', 'JPEG', 'PNG'].includes(fileType || '') ? <ImageIcon className="h-5 w-5" /> : <FileText className="h-5 w-5" />);
+
+                                return (
+                                  <div key={hw.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                                    <div className="flex items-center space-x-3">
+                                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                                        {fileIcon}
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">{lesson ? `${lesson.title} homework` : 'Homework'}</p>
+                                        <p className="text-sm text-gray-500">
+                                          {new Date(hw.uploaded_at).toLocaleDateString()} • {fileType}
+                                        </p>
+                                        {hw.review_notes && (
+                                          <p className="text-xs text-gray-400 mt-1">Note: {hw.review_notes}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <Badge variant={hw.status === 'reviewed' ? 'default' : 'secondary'}>
+                                      {hw.status}
+                                    </Badge>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Completed Lessons</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {progressData.filter(p => p.completed).length === 0 ? (
-                        <p className="text-center text-gray-500">No lessons completed yet. Start learning!</p>
-                      ) : (
-                        <div className="space-y-3">
-                          {progressData.filter(p => p.completed).map((progress) => {
-                            const lesson = lessons.find(l => l.id === progress.lesson_id);
-                            return lesson ? (
-                              <div key={progress.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                  <CheckCircle className="h-5 w-5 text-green-500" />
-                                  <div>
-                                    <p className="font-medium">{lesson.title}</p>
-                                    <p className="text-sm text-gray-500">{lesson.subject}</p>
-                                  </div>
-                                </div>
-                                <Badge variant="default">Completed</Badge>
-                              </div>
-                            ) : null;
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Homework Section */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>My Homework</CardTitle>
-                      <CardDescription>View your uploaded homework</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {homework.length === 0 ? (
-                        <p className="text-center text-gray-500">No homework uploaded yet</p>
-                      ) : (
-                        <div className="space-y-4">
-                          {homework.map((hw) => {
-                            const lesson = lessons.find(l => l.id === hw.lesson_id);
-                            const fileType = hw.file_url.split('.').pop()?.toUpperCase();
-                            const fileIcon = fileType === 'PDF' ? <FilePdf className="h-5 w-5" /> :
-                                          (['JPG', 'JPEG', 'PNG'].includes(fileType || '') ? <ImageIcon className="h-5 w-5" /> : <FileText className="h-5 w-5" />);
-
-                            return (
-                              <div key={hw.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                                    {fileIcon}
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">{lesson ? `${lesson.title} homework` : 'Homework'}</p>
-                                    <p className="text-sm text-gray-500">
-                                      {new Date(hw.uploaded_at).toLocaleDateString()} • {fileType} • {hw.status}
-                                    </p>
-                                    {hw.review_notes && (
-                                      <p className="text-xs text-gray-400 mt-1">Note: {hw.review_notes}</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <Badge variant={hw.status === 'reviewed' ? 'default' : 'secondary'}>
-                                  {hw.status}
-                                </Badge>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 </div>
               </TabsContent>
 
               <TabsContent value="help">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Help & Support</CardTitle>
+                <Card className="border-2 border-purple-100">
+                  <CardHeader className="bg-purple-50">
+                    <CardTitle className="flex items-center gap-2">
+                      <Lightbulb className="text-purple-500" /> Help & Support
+                    </CardTitle>
                     <CardDescription>Need help with your lessons or account?</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold mb-2">How to use Learnzaa</h3>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          1. Select a lesson from the sidebar<br />
-                          2. Read the lesson content carefully<br />
-                          3. Complete the quizzes to earn points<br />
-                          4. Mark lessons as done when completed<br />
-                          5. Upload your homework<br />
-                          6. Track your progress and level up!
-                        </p>
+                    <div className="space-y-6">
+                      <div className="bg-white p-6 rounded-lg border">
+                        <h3 className="font-semibold mb-3 flex items-center gap-2 text-blue-600">
+                          <GraduationCap className="text-blue-500" /> How to use Learnzaa
+                        </h3>
+                        <div className="space-y-3 text-gray-700">
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full mt-1">
+                              <span className="text-blue-600 font-bold">1</span>
+                            </div>
+                            <p>Select a lesson from the sidebar</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full mt-1">
+                              <span className="text-blue-600 font-bold">2</span>
+                            </div>
+                            <p>Read the lesson content carefully</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full mt-1">
+                              <span className="text-blue-600 font-bold">3</span>
+                            </div>
+                            <p>Complete the quizzes to earn points 💎</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full mt-1">
+                              <span className="text-blue-600 font-bold">4</span>
+                            </div>
+                            <p>Mark lessons as done when completed</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full mt-1">
+                              <span className="text-blue-600 font-bold">5</span>
+                            </div>
+                            <p>Upload your homework to get feedback</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full mt-1">
+                              <span className="text-blue-600 font-bold">6</span>
+                            </div>
+                            <p>Track your progress and level up! 🚀</p>
+                          </div>
+                        </div>
                       </div>
 
-                      <div>
-                        <h3 className="font-semibold mb-2">Contact Support</h3>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          If you need help, contact your parent or teacher. They can assist you with any questions about the platform.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h3 className="font-semibold mb-2">Tips for Learning</h3>
-                        <ul className="list-disc list-inside text-gray-600 dark:text-gray-400 space-y-1">
+                      <div className="bg-white p-6 rounded-lg border">
+                        <h3 className="font-semibold mb-3 flex items-center gap-2 text-green-600">
+                          <PartyPopper className="text-green-500" /> Tips for Learning
+                        </h3>
+                        <ul className="list-disc list-inside text-gray-700 space-y-2 pl-4">
                           <li>Take your time reading each lesson</li>
                           <li>Try quizzes multiple times to understand</li>
-                          <li>Use hints when you're stuck</li>
+                          <li>Use hints when you're stuck - they're free! 💡</li>
                           <li>Complete lessons regularly to earn rewards</li>
-                          <li>Upload your homework to get feedback</li>
-                          <li>Ask for help when you need it!</li>
+                          <li>Upload your homework to get feedback from your teacher</li>
+                          <li>Ask for help when you need it - we're here to support you!</li>
                         </ul>
+                      </div>
+
+                      <div className="bg-white p-6 rounded-lg border">
+                        <h3 className="font-semibold mb-3 flex items-center gap-2 text-purple-600">
+                          <Award className="text-purple-500" /> Points & Levels
+                        </h3>
+                        <div className="space-y-3 text-gray-700">
+                          <div className="flex items-start gap-3">
+                            <div className="bg-purple-100 p-2 rounded-full mt-1">
+                              <span className="text-purple-600 font-bold">💎</span>
+                            </div>
+                            <div>
+                              <p className="font-medium">Points</p>
+                              <p className="text-sm text-gray-600">Earn points by completing lessons and quizzes</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-purple-100 p-2 rounded-full mt-1">
+                              <span className="text-purple-600 font-bold">⚡</span>
+                            </div>
+                            <div>
+                              <p className="font-medium">XP (Experience Points)</p>
+                              <p className="text-sm text-gray-600">Gain XP to level up and unlock achievements</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-purple-100 p-2 rounded-full mt-1">
+                              <span className="text-purple-600 font-bold">🏆</span>
+                            </div>
+                            <div>
+                              <p className="font-medium">Levels</p>
+                              <p className="text-sm text-gray-600">Level up as you gain more XP and complete more lessons</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -873,42 +1051,44 @@ const LearnerPage: React.FC = () => {
           {/* Right Column - Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Points & XP Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Progress</CardTitle>
+            <Card className="border-2 border-yellow-100">
+              <CardHeader className="bg-yellow-50">
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="text-yellow-500" /> Your Progress
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border">
                     <div className="flex items-center space-x-2">
                       <Star className="h-5 w-5 text-yellow-500" />
-                      <span>Points</span>
+                      <span>💎 Points</span>
                     </div>
                     <span className="text-xl font-bold">{pointsBalance?.points || 0}</span>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border">
                     <div className="flex items-center space-x-2">
                       <Award className="h-5 w-5 text-purple-500" />
-                      <span>XP</span>
+                      <span>⚡ XP</span>
                     </div>
                     <span className="text-xl font-bold">{xpBalance?.xp || 0}</span>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border">
                     <div className="flex items-center space-x-2">
                       <BookOpen className="h-5 w-5 text-green-500" />
                       <span>Level</span>
                     </div>
                     <div className="text-right">
                       <span className="text-xl font-bold">{levelInfo.level}</span>
-                      <span className="text-sm text-gray-500 block">{levelInfo.name}</span>
+                      <span className="text-sm text-gray-500 block">{levelInfo.name} {levelInfo.emoji}</span>
                     </div>
                   </div>
 
-                  <Progress value={levelInfo.progress} className="h-2" />
+                  <Progress value={levelInfo.progress} className="h-3" />
                   <p className="text-xs text-gray-500 text-center">
-                    {levelInfo.progress.toFixed(0)}% to next level
+                    {levelInfo.progress.toFixed(0)}% to next level {levelInfo.level < 4 ? '🚀' : '🏆'}
                   </p>
                 </div>
               </CardContent>
@@ -916,9 +1096,11 @@ const LearnerPage: React.FC = () => {
 
             {/* Next Lesson Card */}
             {lessons.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Next Lessons</CardTitle>
+              <Card className="border-2 border-blue-100">
+                <CardHeader className="bg-blue-50">
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="text-blue-500" /> Next Lessons
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[300px]">
@@ -930,7 +1112,7 @@ const LearnerPage: React.FC = () => {
                             key={lesson.id}
                             className={cn(
                               "p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
-                              isCompleted ? "border-green-200 bg-green-50 dark:bg-green-900/20" : "border-gray-200"
+                              isCompleted ? "border-green-200 bg-green-50" : "border-blue-200 bg-white"
                             )}
                             onClick={() => handleLessonSelect(lesson)}
                           >
@@ -938,11 +1120,11 @@ const LearnerPage: React.FC = () => {
                               <div>
                                 <h3 className={cn(
                                   "font-medium",
-                                  isCompleted ? "text-green-700 dark:text-green-300" : "text-gray-900 dark:text-gray-100"
+                                  isCompleted ? "text-green-700" : "text-blue-700"
                                 )}>
                                   {lesson.title}
                                 </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{lesson.subject}</p>
+                                <p className="text-sm text-gray-500">{lesson.subject}</p>
                               </div>
                               {isCompleted && <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />}
                             </div>
@@ -956,9 +1138,11 @@ const LearnerPage: React.FC = () => {
             )}
 
             {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+            <Card className="border-2 border-green-100">
+              <CardHeader className="bg-green-50">
+                <CardTitle className="flex items-center gap-2">
+                  <Lightbulb className="text-green-500" /> Quick Actions
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -975,7 +1159,7 @@ const LearnerPage: React.FC = () => {
                   </Button>
 
                   <Button
-                    className="w-full justify-start bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    className="w-full justify-start bg-white border border-green-200 hover:bg-green-50 text-green-700"
                     onClick={() => setActiveTab('progress')}
                   >
                     <Star className="h-4 w-4 mr-2" />
@@ -986,67 +1170,93 @@ const LearnerPage: React.FC = () => {
                     learnerId={learner.id}
                     onUploadSuccess={handleHomeworkUploadSuccess}
                   />
+
+                  <Button
+                    className="w-full justify-start bg-white border border-blue-200 hover:bg-blue-50 text-blue-700"
+                    onClick={() => setActiveTab('help')}
+                  >
+                    <Lightbulb className="h-4 w-4 mr-2" />
+                    Help Center
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
             {/* Achievements */}
-            <Card>
-              <CardHeader>
-                <CardTitle>My Achievements</CardTitle>
+            <Card className="border-2 border-purple-100">
+              <CardHeader className="bg-purple-50">
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="text-purple-500" /> My Achievements
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
-                        <Star className="h-4 w-4 text-yellow-600 dark:text-yellow-300" />
+                      <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <Star className="h-4 w-4 text-yellow-600" />
                       </div>
                       <div>
                         <p className="font-medium">First Lesson</p>
                         <p className="text-sm text-gray-500">Complete your first lesson</p>
                       </div>
                     </div>
-                    {completedLessons > 0 && <CheckCircle className="h-5 w-5 text-green-500" />}
+                    {completedLessons > 0 && (
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                        <Award className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Award className="h-4 w-4 text-purple-600" />
                       </div>
                       <div>
                         <p className="font-medium">Quiz Master</p>
                         <p className="text-sm text-gray-500">Complete 5 quizzes correctly</p>
                       </div>
                     </div>
-                    {quizAttempts.filter(a => a.correct).length >= 5 && <CheckCircle className="h-5 w-5 text-green-500" />}
+                    {quizAttempts.filter(a => a.correct).length >= 5 && (
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-300" />
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <BookOpen className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
                         <p className="font-medium">Learning Streak</p>
                         <p className="text-sm text-gray-500">Complete 3 lessons in a row</p>
                       </div>
                     </div>
-                    {completedLessons >= 3 && <CheckCircle className="h-5 w-5 text-green-500" />}
+                    {completedLessons >= 3 && (
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                        <Upload className="h-4 w-4 text-green-600 dark:text-green-300" />
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <Upload className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
                         <p className="font-medium">Homework Hero</p>
                         <p className="text-sm text-gray-500">Upload 3 homework assignments</p>
                       </div>
                     </div>
-                    {homework.length >= 3 && <CheckCircle className="h-5 w-5 text-green-500" />}
+                    {homework.length >= 3 && (
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -1059,14 +1269,18 @@ const LearnerPage: React.FC = () => {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Quiz Question</DialogTitle>
-            <DialogDescription>Answer the question to earn points!</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <Lightbulb className="text-yellow-500" /> Quiz Question
+            </DialogTitle>
+            <DialogDescription>Answer the question to earn points! 💎</DialogDescription>
           </DialogHeader>
           {selectedQuiz && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">{selectedQuiz.question}</h3>
-                <p className="text-sm text-gray-500 mb-4">Reward: {selectedQuiz.points_reward} points</p>
+                <p className="text-sm text-gray-500 mb-4 flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" /> Reward: {selectedQuiz.points_reward} 💎
+                </p>
               </div>
 
               <div className="space-y-3">
@@ -1080,7 +1294,7 @@ const LearnerPage: React.FC = () => {
                       key={index}
                       className={cn(
                         "w-full justify-start text-left",
-                        isSelected ? (isCorrect ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700") : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        isSelected ? (isCorrect ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700") : "bg-blue-100 hover:bg-blue-200 text-blue-800"
                       )}
                       onClick={() => handleQuizAnswer(selectedQuiz.id, index)}
                       disabled={isSelected}
@@ -1095,23 +1309,24 @@ const LearnerPage: React.FC = () => {
               <div className="flex justify-between items-center">
                 <Button
                   variant="outline"
-                  onClick={() => showSuccess('Hint: Try to understand the question and think about what you learned in the lesson!')}
+                  onClick={() => showSuccess('💡 Hint: Try to understand the question and think about what you learned in the lesson!')}
+                  className="flex items-center gap-2"
                 >
-                  {ageStyles.hintText}
+                  <Lightbulb className="h-4 w-4" /> {ageStyles.hintText}
                 </Button>
 
                 <Button
                   variant="outline"
-                  className="text-red-500 hover:text-red-600"
+                  className="text-red-500 hover:text-red-600 flex items-center gap-2"
                   onClick={async () => {
                     const success = await handleRevealAnswer(selectedQuiz.id);
                     if (success) {
                       // Show the correct answer
-                      showSuccess(`Correct answer: ${String.fromCharCode(65 + selectedQuiz.correct_index)}. ${selectedQuiz.options[selectedQuiz.correct_index]}`);
+                      showSuccess(`✨ Correct answer: ${String.fromCharCode(65 + selectedQuiz.correct_index)}. ${selectedQuiz.options[selectedQuiz.correct_index]}`);
                     }
                   }}
                 >
-                  {ageStyles.revealText} ({selectedQuiz.reveal_cost} points)
+                  <Star className="h-4 w-4" /> {ageStyles.revealText} ({selectedQuiz.reveal_cost} 💎)
                 </Button>
               </div>
             </div>
@@ -1120,24 +1335,22 @@ const LearnerPage: React.FC = () => {
       </Dialog>
 
       {/* Footer */}
-      <footer className="bg-gray-100 dark:bg-gray-800 mt-12 py-6 px-4">
+      <footer className="bg-white/80 backdrop-blur-sm mt-12 py-6 px-4 border-t">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-4 mb-4 md:mb-0">
-              <Button variant="ghost" size="sm" onClick={() => setActiveTab('lessons')}>
-                <BookOpen className="h-4 w-4 mr-1" /> Subjects
+              <Button variant="ghost" size="sm" onClick={() => setActiveTab('lessons')} className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" /> Lessons
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setActiveTab('progress')}>
-                <Star className="h-4 w-4 mr-1" /> My Progress
+              <Button variant="ghost" size="sm" onClick={() => setActiveTab('progress')} className="flex items-center gap-2">
+                <Star className="h-4 w-4" /> Progress
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setActiveTab('help')}>
-                <Award className="h-4 w-4 mr-1" /> Help
+              <Button variant="ghost" size="sm" onClick={() => setActiveTab('help')} className="flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" /> Help
               </Button>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              <span>© 2026 Learnzaa. All rights reserved.</span>
-              <Link to="/privacy" className="ml-4 hover:text-gray-700 dark:hover:text-gray-300">Privacy</Link>
-              <Link to="/terms" className="ml-4 hover:text-gray-700 dark:hover:text-gray-300">Terms</Link>
+            <div className="text-sm text-gray-500">
+              <span>© 2026 Learnzaa. Made with ❤️ for learners!</span>
             </div>
           </div>
         </div>
