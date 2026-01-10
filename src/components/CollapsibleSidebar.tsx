@@ -7,7 +7,7 @@ import { Home, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CollapsibleSidebarProps {
-  children: React.ReactNode;
+  children?: React.ReactNode; // Made children optional
 }
 
 const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ children }) => {
