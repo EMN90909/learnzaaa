@@ -58,12 +58,17 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         .eq('org_id', orgId);
 
       if (error) {
-        throw error;
+        if (error.code === '42501') {
+          showError('You do not have permission to view learners. Please contact support.');
+        } else {
+          throw error;
+        }
+        return;
       }
 
       setLearners(data || []);
     } catch (error: any) {
-      showError('Failed to fetch learners');
+      showError('Failed to fetch learners: ' + error.message);
       console.error('Error fetching learners:', error);
     } finally {
       setLoading(false);
@@ -96,7 +101,14 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         .eq('id', editingLearner.id);
 
       if (error) {
-        throw error;
+        if (error.code === '42501') {
+          showError('You do not have permission to update learners. Please contact support.');
+        } else if (error.code === '23505') {
+          showError('Username already exists. Please choose a different one.');
+        } else {
+          throw error;
+        }
+        return;
       }
 
       showSuccess('Learner updated successfully!');
@@ -104,7 +116,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       setIsEditLearnerModalOpen(false);
       setEditingLearner(null);
     } catch (error: any) {
-      showError('Failed to update learner');
+      showError('Failed to update learner: ' + error.message);
       console.error('Error updating learner:', error);
     }
   };
@@ -121,13 +133,18 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         .eq('id', learnerId);
 
       if (error) {
-        throw error;
+        if (error.code === '42501') {
+          showError('You do not have permission to delete learners. Please contact support.');
+        } else {
+          throw error;
+        }
+        return;
       }
 
       showSuccess('Learner deleted successfully!');
       fetchLearners();
     } catch (error: any) {
-      showError('Failed to delete learner');
+      showError('Failed to delete learner: ' + error.message);
       console.error('Error deleting learner:', error);
     }
   };

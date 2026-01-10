@@ -79,7 +79,14 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
       });
 
       if (error) {
-        throw error;
+        if (error.code === '42501') {
+          showError('You do not have permission to add learners. Please contact support.');
+        } else if (error.code === '23505') {
+          showError('Username already exists. Please choose a different one.');
+        } else {
+          throw error;
+        }
+        return;
       }
 
       showSuccess('Learner added successfully!');
@@ -87,7 +94,7 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
       onLearnerAdded();
       onClose();
     } catch (error: any) {
-      showError('Failed to add learner');
+      showError('Failed to add learner: ' + error.message);
       console.error('Error adding learner:', error);
     }
   };
