@@ -9,7 +9,7 @@ const AuthPage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">Welcome to LearnZaa (Parent/Admin)</CardTitle>
+          <CardTitle className="text-center text-2xl font-bold">Welcome to E-Learning</CardTitle>
         </CardHeader>
         <CardContent>
           <Auth
@@ -27,7 +27,7 @@ const AuthPage = () => {
               },
             }}
             theme="light" // Use light theme for Auth UI
-            // Removed redirectTo prop to allow SessionContextProvider to handle navigation
+            redirectTo={window.location.origin + '/dashboard'}
           />
         </CardContent>
       </Card>

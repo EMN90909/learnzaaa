@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSession } from '@/integrations/supabase/supabaseContext';
 import { Loader2 } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import LessonCard from '@/components/LessonCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useParams } from 'react-router-dom'; // Import useParams
 
 interface Lesson {
   id: string;
@@ -19,12 +19,12 @@ interface Lesson {
   updated_at: string;
 }
 
-const LessonsPage: React.FC = () => {
+const LearnersPage: React.FC = () => {
+  const { user } = useSession();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { lessonId: routeLessonId } = useParams<{ lessonId: string }>(); // Get lessonId from URL
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -44,17 +44,7 @@ const LessonsPage: React.FC = () => {
     };
 
     fetchLessons();
-  }, []);
-
-  useEffect(() => {
-    if (routeLessonId && lessons.length > 0) {
-      const lesson = lessons.find(l => l.id === routeLessonId);
-      if (lesson) {
-        setSelectedLesson(lesson);
-        setIsModalOpen(true);
-      }
-    }
-  }, [routeLessonId, lessons]);
+  }, [user]);
 
   const handleViewDetails = (lessonId: string) => {
     const lesson = lessons.find(l => l.id === lessonId);
@@ -103,4 +93,4 @@ const LessonsPage: React.FC = () => {
   );
 };
 
-export default LessonsPage;
+export default LearnersPage;
