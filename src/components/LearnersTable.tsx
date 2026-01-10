@@ -27,8 +27,8 @@ interface Learner {
   org_id: string;
   name: string;
   username: string;
-  pin_hash: string; // Storing as plain text for now, needs server-side hashing
-  dob: string; // YYYY-MM-DD format
+  pin_hash: string;
+  dob: string;
   grade: string;
   created_at: string;
 }
@@ -174,7 +174,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
                   <TableCell>{learner.username}</TableCell>
                   <TableCell>{format(new Date(learner.dob), 'PPP')}</TableCell>
                   <TableCell>{learner.grade}</TableCell>
-                  <TableCell>{learner.pin_hash}</TableCell> {/* Displaying PIN for now, but should be handled securely */}
+                  <TableCell>{learner.pin_hash}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => handleEditClick(learner)} className="mr-2">
                       <Edit className="h-4 w-4" />
@@ -190,7 +190,6 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         </div>
       )}
 
-      {/* Edit Learner Dialog */}
       <Dialog open={isEditLearnerModalOpen} onOpenChange={setIsEditLearnerModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -212,7 +211,6 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
   );
 };
 
-// A simple form for editing learner details
 interface EditLearnerFormProps {
   learner: Learner;
   onUpdate: (values: Partial<Learner>) => void;
@@ -258,7 +256,7 @@ const EditLearnerForm: React.FC<EditLearnerFormProps> = ({ learner, onUpdate, on
             <Button
               variant={"outline"}
               className={cn(
-                "w-full pl-3 text-left font-normal flex justify-between items-center", // Added flex and justify-between
+                "w-full pl-3 text-left font-normal flex justify-between items-center",
                 !dob && "text-muted-foreground"
               )}
             >

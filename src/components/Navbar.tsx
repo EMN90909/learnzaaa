@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import SafeButton from '@/components/SafeButton';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Home, BookOpen } from 'lucide-react'; // Removed Users icon as Learners page is now Lessons
+import { LogOut, Home, BookOpen } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 const Navbar: React.FC = () => {
@@ -19,7 +19,7 @@ const Navbar: React.FC = () => {
   };
 
   if (loading) {
-    return null; // Don't render navbar while session is loading
+    return null;
   }
 
   return (
@@ -30,24 +30,24 @@ const Navbar: React.FC = () => {
       <div className="flex items-center space-x-4">
         {session ? (
           <>
-            <Button variant="ghost" asChild>
+            <SafeButton variant="ghost" asChild>
               <Link to="/dashboard" className="flex items-center gap-2">
                 <Home className="h-4 w-4" /> Dashboard
               </Link>
-            </Button>
-            <Button variant="ghost" asChild>
-              <Link to="/lessons" className="flex items-center gap-2"> {/* Updated link */}
+            </SafeButton>
+            <SafeButton variant="ghost" asChild>
+              <Link to="/lessons" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" /> Lessons
               </Link>
-            </Button>
-            <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-600">
+            </SafeButton>
+            <SafeButton variant="ghost" onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-600">
               <LogOut className="h-4 w-4" /> Logout
-            </Button>
+            </SafeButton>
           </>
         ) : (
-          <Button asChild>
+          <SafeButton asChild>
             <Link to="/auth">Login / Signup</Link>
-          </Button>
+          </SafeButton>
         )}
       </div>
     </nav>
