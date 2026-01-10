@@ -8,9 +8,10 @@ import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import { SessionContextProvider } from "./integrations/supabase/supabaseContext";
 import DashboardPage from "./pages/DashboardPage";
-import LessonsPage from "./pages/LessonsPage"; // Renamed from LearnersPage
+import LessonsPage from "./pages/LessonsPage";
 import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
+import LearnersDashboard from "./pages/LearnersDashboard";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,8 @@ const App = () => (
             {/* Protected Routes */}
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/lessons" element={<LessonsPage />} /> {/* Updated route */}
+              <Route path="/lessons" element={<LessonsPage />} />
+              <Route path="/learners" element={<LearnersDashboard />} />
               {/* Add other protected routes here */}
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

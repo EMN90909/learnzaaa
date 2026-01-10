@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Home, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Users, BookOpen, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const CollapsibleSidebar: React.FC = () => {
@@ -21,7 +21,7 @@ const CollapsibleSidebar: React.FC = () => {
       onMouseLeave={() => setIsOpen(false)}
     >
       <div className="p-4 flex items-center justify-between">
-        {isOpen && <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Admin Tools</h2>}
+        {isOpen && <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">LearnZaa Admin</h2>}
         <Button variant="ghost" size="icon" onClick={toggleSidebar} className="ml-auto">
           {isOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
         </Button>
@@ -37,6 +37,12 @@ const CollapsibleSidebar: React.FC = () => {
           <Link to="/lessons">
             <BookOpen className="h-5 w-5 inline-block mr-2" />
             {isOpen && <span>Lessons</span>}
+          </Link>
+        </Button>
+        <Button asChild variant="ghost" className="w-full justify-start">
+          <Link to="/learners">
+            <Users className="h-5 w-5 inline-block mr-2" />
+            {isOpen && <span>Learners</span>}
           </Link>
         </Button>
       </nav>

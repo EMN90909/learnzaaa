@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Home, BookOpen } from 'lucide-react';
+import { LogOut, Home, BookOpen, User } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 const Navbar: React.FC = () => {
@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center">
       <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-        E-Learning
+        LearnZaa
       </Link>
       <div className="flex items-center space-x-4">
         {session ? (
@@ -40,6 +40,12 @@ const Navbar: React.FC = () => {
               <Link to="/lessons">
                 <BookOpen className="h-4 w-4 inline-block mr-2" />
                 Lessons
+              </Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link to="/learners">
+                <User className="h-4 w-4 inline-block mr-2" />
+                Learners
               </Link>
             </Button>
             <Button variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-600">
