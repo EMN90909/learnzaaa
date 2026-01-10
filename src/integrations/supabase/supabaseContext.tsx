@@ -30,9 +30,10 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
           navigate('/dashboard'); // Redirect to dashboard on sign-in
         } else if (event === 'SIGNED_OUT') {
           showSuccess('You have been signed out.');
-          navigate('/auth'); // Redirect to auth page on sign-out
+          navigate('/'); // Redirect to home page on sign-out
         } else if (event === 'INITIAL_SESSION' && !currentSession) {
-          navigate('/auth'); // Redirect to auth page if no initial session
+          // Don't redirect if no initial session, let user stay on current page
+          setLoading(false);
         }
       }
     );
@@ -42,9 +43,6 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
       setSession(initialSession);
       setUser(initialSession?.user || null);
       setLoading(false);
-      if (!initialSession) {
-        navigate('/auth');
-      }
     });
 
     return () => {

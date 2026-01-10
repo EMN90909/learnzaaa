@@ -38,7 +38,7 @@ const App = () => (
               <Route path="/learners/add" element={<AddLearnerPage />} />
               {/* Add other protected routes here */}
             </Route>
-            {/* Learner Dashboard Route */}
+            {/* Learner Dashboard Route - Not protected by PrivateRoute */}
             <Route path="/learner-dashboard" element={<LearnerDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
