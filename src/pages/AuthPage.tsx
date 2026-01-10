@@ -27,7 +27,7 @@ const AuthPage = () => {
               },
             }}
             theme="light" // Use light theme for Auth UI
-            redirectTo={window.location.origin + '/parent-dashboard'} // Redirect to parent dashboard
+            // Removed redirectTo prop to allow SessionContextProvider to handle navigation
           />
         </CardContent>
       </Card>
