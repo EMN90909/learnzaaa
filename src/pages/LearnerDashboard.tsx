@@ -147,10 +147,16 @@ const LearnerDashboard: React.FC = () => {
               Welcome, {learner.name} ({learner.grade})
             </p>
           </div>
-          <Button onClick={handleLogout} variant="outline" className="text-red-500 hover:text-red-600">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex space-x-2">
+            <Button onClick={() => navigate('/learner-page')} className="bg-green-600 hover:bg-green-700 text-white">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Go to Learning Page
+            </Button>
+            <Button onClick={handleLogout} variant="outline" className="text-red-500 hover:text-red-600">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
