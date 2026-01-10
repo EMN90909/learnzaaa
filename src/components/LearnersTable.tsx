@@ -51,18 +51,23 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
 
   const fetchLearners = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('learners')
-      .select('*')
-      .eq('org_id', orgId);
+    try {
+      const { data, error } = await supabase
+        .from('learners')
+        .select('*')
+        .eq('org_id', orgId);
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      setLearners(data || []);
+    } catch (error: any) {
       showError('Failed to fetch learners');
       console.error('Error fetching learners:', error);
-    } else {
-      setLearners(data || []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -108,6 +113,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
     if (!window.confirm('Are you sure you want to delete this learner?')) {
       return;
     }
+
     try {
       const { error } = await supabase
         .from('learners')
