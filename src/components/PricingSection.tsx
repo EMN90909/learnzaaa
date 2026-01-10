@@ -83,17 +83,12 @@ const PricingSection: React.FC = () => {
                   </Button>
                 ) : (
                   <div className="stripe-buy-button-container">
-                    {/* Using a div with dangerouslySetInnerHTML to render the Stripe buy button */}
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: `
-                          <stripe-buy-button
-                            buy-button-id="${process.env.VITE_STRIPE_BUY_BUTTON_ID}"
-                            publishable-key="${process.env.VITE_STRIPE_PUBLISHABLE_KEY}"
-                          ></stripe-buy-button>
-                        `
-                      }}
-                    />
+                    {/* @ts-ignore - Stripe buy button is loaded dynamically */}
+                    <stripe-buy-button
+                      buy-button-id={process.env.VITE_STRIPE_BUY_BUTTON_ID}
+                      publishable-key={process.env.VITE_STRIPE_PUBLISHABLE_KEY}
+                    >
+                    </stripe-buy-button>
                   </div>
                 )}
               </CardContent>

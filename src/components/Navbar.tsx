@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,24 +9,13 @@ import { showSuccess, showError } from '@/utils/toast';
 const Navbar: React.FC = () => {
   const { session, loading } = useSession();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Hide navbar on learners dashboard
-  if (location.pathname === '/learners') {
-    return null;
-  }
 
   const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        showError(error.message);
-      } else {
-        showSuccess('Logged out successfully!');
-      }
-    } catch (error) {
-      showError('An error occurred during logout');
-      console.error('Logout error:', error);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      showError(error.message);
+    } else {
+      showSuccess('Logged out successfully!');
     }
   };
 
