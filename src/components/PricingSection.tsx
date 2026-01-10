@@ -82,13 +82,9 @@ const PricingSection: React.FC = () => {
                     <Link to="/auth">{plan.buttonText}</Link>
                   </Button>
                 ) : (
-                  <div className="stripe-buy-button-container">
-                    {/* @ts-ignore - Stripe buy button is loaded dynamically */}
-                    <stripe-buy-button
-                      buy-button-id={process.env.VITE_STRIPE_BUY_BUTTON_ID}
-                      publishable-key={process.env.VITE_STRIPE_PUBLISHABLE_KEY}
-                    />
-                  </div>
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    {plan.buttonText}
+                  </Button>
                 )}
               </CardContent>
             </Card>
