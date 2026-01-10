@@ -18,9 +18,9 @@ import AddLearnerForm from './AddLearnerForm';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Added import
-import { Calendar } from '@/components/ui/calendar'; // Added import
-import { cn } from '@/lib/utils'; // Added import
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface Learner {
   id: string;
@@ -262,12 +262,14 @@ const EditLearnerForm: React.FC<EditLearnerFormProps> = ({ learner, onUpdate, on
                 !dob && "text-muted-foreground"
               )}
             >
-              {dob ? (
-                format(dob, "PPP")
-              ) : (
-                <span>Pick a date</span>
-              )}
-              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              <span> {/* Wrap content in a span */}
+                {dob ? (
+                  format(dob, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
