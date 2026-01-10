@@ -19,7 +19,7 @@ interface Lesson {
   updated_at: string;
 }
 
-const LearnersPage: React.FC = () => {
+const LessonsPage: React.FC = () => {
   const { user } = useSession();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,4 +93,4 @@ const LearnersPage: React.FC = () => {
   );
 };
 
-export default LearnersPage;
+export default LessonsPage;

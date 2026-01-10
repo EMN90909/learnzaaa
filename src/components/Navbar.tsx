@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Home, BookOpen, Users } from 'lucide-react';
+import { LogOut, Home, BookOpen } from 'lucide-react'; // Removed Users icon as Learners page is now Lessons
 import { showSuccess, showError } from '@/utils/toast';
 
 const Navbar: React.FC = () => {
-  const { session, user, loading } = useSession();
+  const { session, loading } = useSession();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -36,11 +36,10 @@ const Navbar: React.FC = () => {
               </Link>
             </Button>
             <Button variant="ghost" asChild>
-              <Link to="/learners" className="flex items-center gap-2">
-                <Users className="h-4 w-4" /> Learners
+              <Link to="/lessons" className="flex items-center gap-2"> {/* Updated link */}
+                <BookOpen className="h-4 w-4" /> Lessons
               </Link>
             </Button>
-            {/* Add more navigation links here */}
             <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-600">
               <LogOut className="h-4 w-4" /> Logout
             </Button>
