@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import SafeButton from '@/components/SafeButton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, Loader2, CalendarIcon } from 'lucide-react';
 import AddLearnerForm from './AddLearnerForm';
@@ -136,9 +136,10 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         <h2 className="text-2xl font-bold">Your Learners</h2>
         <Dialog open={isAddLearnerModalOpen} onOpenChange={setIsAddLearnerModalOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add New Learner
-            </Button>
+            <SafeButton>
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Add New Learner</span>
+            </SafeButton>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -176,12 +177,12 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
                   <TableCell>{learner.grade}</TableCell>
                   <TableCell>{learner.pin_hash}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(learner)} className="mr-2">
+                    <SafeButton variant="ghost" size="icon" onClick={() => handleEditClick(learner)} className="mr-2">
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteLearner(learner.id)}>
+                    </SafeButton>
+                    <SafeButton variant="ghost" size="icon" onClick={() => handleDeleteLearner(learner.id)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                    </SafeButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -253,7 +254,7 @@ const EditLearnerForm: React.FC<EditLearnerFormProps> = ({ learner, onUpdate, on
         <Label htmlFor="edit-dob">Date of Birth</Label>
         <Popover>
           <PopoverTrigger asChild>
-            <Button
+            <SafeButton
               variant={"outline"}
               className={cn(
                 "w-full pl-3 text-left font-normal flex justify-between items-center",
@@ -268,7 +269,7 @@ const EditLearnerForm: React.FC<EditLearnerFormProps> = ({ learner, onUpdate, on
                 )}
                 <CalendarIcon className="h-4 w-4 opacity-50" />
               </span>
-            </Button>
+            </SafeButton>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
@@ -288,8 +289,8 @@ const EditLearnerForm: React.FC<EditLearnerFormProps> = ({ learner, onUpdate, on
         <Input id="edit-grade" value={grade} onChange={(e) => setGrade(e.target.value)} required />
       </div>
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-        <Button type="submit">Save Changes</Button>
+        <SafeButton type="button" variant="outline" onClick={onClose}>Cancel</SafeButton>
+        <SafeButton type="submit">Save Changes</SafeButton>
       </div>
     </form>
   );
