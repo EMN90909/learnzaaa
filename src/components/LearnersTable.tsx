@@ -258,18 +258,16 @@ const EditLearnerForm: React.FC<EditLearnerFormProps> = ({ learner, onUpdate, on
             <Button
               variant={"outline"}
               className={cn(
-                "w-full pl-3 text-left font-normal",
+                "w-full pl-3 text-left font-normal flex justify-between items-center", // Added flex and justify-between
                 !dob && "text-muted-foreground"
               )}
             >
-              <span> {/* Wrap content in a span */}
-                {dob ? (
-                  format(dob, "PPP")
-                ) : (
-                  <span>Pick a date</span>
-                )}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </span>
+              {dob ? (
+                format(dob, "PPP")
+              ) : (
+                <span>Pick a date</span>
+              )}
+              <CalendarIcon className="h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
