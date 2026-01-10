@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
-import CollapsibleSidebar from '@/components/CollapsibleSidebar'; // Import the new sidebar
-import LearnersTable from '@/components/LearnersTable'; // Import the new learners table
+import CollapsibleSidebar from '@/components/CollapsibleSidebar';
+import LearnersTable from '@/components/LearnersTable';
 
 interface Profile {
   id: string;
@@ -66,10 +66,8 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)]"> {/* Adjust min-h to account for Navbar */}
-      <CollapsibleSidebar>
-        {/* Any specific admin tools can go here if needed, but LearnersTable handles its own add button */}
-      </CollapsibleSidebar>
+    <div className="flex min-h-[calc(100vh-64px)]">
+      <CollapsibleSidebar />
       <main className="flex-1 p-4 overflow-auto">
         <div className="container mx-auto">
           <h1 className="text-3xl font-bold mb-6">Welcome, {profile.display_name || profile.email}!</h1>
@@ -92,7 +90,6 @@ const DashboardPage: React.FC = () => {
                 </CardContent>
               </Card>
             )}
-            {/* Removed Total Learners card as it's now part of LearnersTable */}
           </div>
 
           {profile.org_id ? (

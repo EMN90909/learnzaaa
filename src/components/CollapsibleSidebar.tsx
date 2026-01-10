@@ -6,11 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Home, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface CollapsibleSidebarProps {
-  children?: React.ReactNode;
-}
-
-const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ children }) => {
+const CollapsibleSidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
@@ -44,11 +40,6 @@ const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ children }) => 
           </Link>
         </Button>
       </nav>
-      {children && (
-        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
-          {children}
-        </div>
-      )}
     </div>
   );
 };
