@@ -44,6 +44,7 @@ interface PaymentIntent {
   platform_fee: number;
   status: string;
   created_at: string;
+  user_id: string;
 }
 
 interface Learner {
@@ -94,7 +95,7 @@ const BillingPage: React.FC = () => {
         setSubscription(subscriptionData);
       }
 
-      // Fetch payment intents
+      // Fetch payment intents for this user only
       const { data: paymentIntentsData, error: paymentIntentsError } = await supabase
         .from('stripe_payment_intents')
         .select('*')
@@ -131,36 +132,8 @@ const BillingPage: React.FC = () => {
   const handleUpgrade = async () => {
     setIsProcessing(true);
     try {
-      // In a real implementation, this would call a server-side function
-      // to create a Stripe checkout session and redirect to Stripe
-      showSuccess('Upgrade initiated! Redirecting to Stripe...');
-
-      // For now, we'll simulate the upgrade
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Update subscription status
-      const { error } = await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: user?.id,
-          plan: selectedPlan,
-          status: 'active',
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        });
-
-      if (error) throw error;
-
-      // Update profile tier
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ tier: selectedPlan })
-        .eq('id', user?.id);
-
-      if (profileError) throw profileError;
-
-      showSuccess('Upgrade successful! Your plan has been updated.');
-      setIsUpgradeDialogOpen(false);
-      fetchData();
+      // Redirect to Stripe checkout
+      window.location.href = 'https://buy.stripe.com/test_14AaEW9fe5y95RgdZY0kE07';
     } catch (error: any) {
       showError('Failed to upgrade: ' + error.message);
       console.error('Upgrade error:', error);
@@ -210,7 +183,7 @@ const BillingPage: React.FC = () => {
           name: 'Free Plan',
           price: '$0/month',
           features: [
-            '5 learners max',
+            '1 learner max',
             'Limited lessons',
             'Basic progress tracking',
             'Community support'
@@ -348,11 +321,21 @@ const BillingPage: React.FC = () => {
                       <div className="flex justify-end">
                         {profile?.tier === 'free' && (
                           <Button
-                            onClick={() => setIsUpgradeDialogOpen(true)}
+                            onClick={handleUpgrade}
+                            disabled={isProcessing}
                             className="bg-green-600 hover:bg-green-700 text-white"
                           >
-                            <DollarSign className="h-4 w-4 mr-2" />
-                            Upgrade to Premium
+                            {isProcessing ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <DollarSign className="h-4 w-4 mr-2" />
+                                Upgrade to Premium
+                              </>
+                            )}
                           </Button>
                         )}
                       </div>
@@ -378,15 +361,24 @@ const BillingPage: React.FC = () => {
                         <div className="text-right">
                           <p className="text-sm text-gray-500 dark:text-gray-400">Plan Limit</p>
                           <p className="text-2xl font-bold">
-                            {profile?.tier === 'premium' ? 'Unlimited' : '5'}
+                            {profile?.tier === 'premium' ? 'Unlimited' : '1'}
                           </p>
                         </div>
                       </div>
 
                       <Progress
-                        value={profile?.tier === 'premium' ? 100 : Math.min(100, (learners.length / 5) * 100)}
+                        value={profile?.tier === 'premium' ? 100 : Math.min(100, (learners.length / 1) * 100)}
                         className="h-3"
                       />
+
+                      {profile?.tier === 'free' && learners.length >= 1 && (
+                        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 mt-4">
+                          <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            <strong>Free Plan Limit:</strong> You've reached the maximum of 1 learner for the free plan. Upgrade to premium for unlimited learners.
+                          </p>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                         <div className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
@@ -410,7 +402,7 @@ const BillingPage: React.FC = () => {
                         <div className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg border">
                           <p className="text-sm text-gray-500 dark:text-gray-400">Usage</p>
                           <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
-                            {profile?.tier === 'premium' ? 'Unlimited' : `${learners.length}/5`}
+                            {profile?.tier === 'premium' ? 'Unlimited' : `${learners.length}/1`}
                           </p>
                         </div>
                       </div>
@@ -651,7 +643,7 @@ const BillingPage: React.FC = () => {
                 </CardHeader>
                 <CardContent className="text-center">
                   <ul className="list-disc list-inside space-y-2 text-sm text-left">
-                    <li>5 learners max</li>
+                    <li>1 learner max</li>
                     <li>Limited lessons</li>
                     <li>Basic progress tracking</li>
                     <li>Community support</li>
