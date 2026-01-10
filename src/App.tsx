@@ -14,6 +14,7 @@ import Navbar from "./components/Navbar";
 import LearnersDashboard from "./pages/LearnersDashboard";
 import LearnerAuthPage from "./pages/LearnerAuthPage";
 import LearnerDashboard from "./pages/LearnerDashboard";
+import AddLearnerPage from "./pages/AddLearnerPage";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/lessons" element={<LessonsPage />} />
               <Route path="/learners" element={<LearnersDashboard />} />
+              <Route path="/learners/add" element={<AddLearnerPage />} />
               {/* Add other protected routes here */}
             </Route>
             {/* Learner Dashboard Route */}
