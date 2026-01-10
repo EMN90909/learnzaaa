@@ -14,7 +14,10 @@ const VisitPage = () => {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105">
-            <Link to="/auth">Get Started</Link>
+            <Link to="/auth">Admin Login</Link>
+          </Button>
+          <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105">
+            <Link to="/learner-auth">Learner Login</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-gray-700">
             <Link to="/lessons">Explore Lessons</Link>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Home, BookOpen, User } from 'lucide-react';
+import { LogOut, Home, BookOpen, User, GraduationCap } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 const Navbar: React.FC = () => {
@@ -54,9 +54,17 @@ const Navbar: React.FC = () => {
             </Button>
           </>
         ) : (
-          <Button asChild>
-            <Link to="/auth">Login / Signup</Link>
-          </Button>
+          <>
+            <Button asChild variant="ghost">
+              <Link to="/auth">Admin Login</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/learner-auth">
+                <GraduationCap className="h-4 w-4 inline-block mr-2" />
+                Learner Login
+              </Link>
+            </Button>
+          </>
         )}
       </div>
     </nav>
