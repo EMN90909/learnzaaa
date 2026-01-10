@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import SafeButton from '@/components/SafeButton';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { Home, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,19 +22,23 @@ const CollapsibleSidebar: React.FC = () => {
     >
       <div className="p-4 flex items-center justify-between">
         {isOpen && <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Admin Tools</h2>}
-        <SafeButton variant="ghost" size="icon" onClick={toggleSidebar} className="ml-auto">
+        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="ml-auto">
           {isOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-        </SafeButton>
+        </Button>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
-        <SafeButton to="/dashboard" variant="ghost" className="w-full justify-start">
-          <Home className="h-5 w-5 inline-block mr-2" />
-          {isOpen && <span>Dashboard</span>}
-        </SafeButton>
-        <SafeButton to="/lessons" variant="ghost" className="w-full justify-start">
-          <BookOpen className="h-5 w-5 inline-block mr-2" />
-          {isOpen && <span>Lessons</span>}
-        </SafeButton>
+        <Button asChild variant="ghost" className="w-full justify-start">
+          <Link to="/dashboard">
+            <Home className="h-5 w-5 inline-block mr-2" />
+            {isOpen && <span>Dashboard</span>}
+          </Link>
+        </Button>
+        <Button asChild variant="ghost" className="w-full justify-start">
+          <Link to="/lessons">
+            <BookOpen className="h-5 w-5 inline-block mr-2" />
+            {isOpen && <span>Lessons</span>}
+          </Link>
+        </Button>
       </nav>
     </div>
   );

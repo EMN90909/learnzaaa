@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import SafeButton from '@/components/SafeButton';
+import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
 import { LogOut, Home, BookOpen } from 'lucide-react';
@@ -30,21 +30,27 @@ const Navbar: React.FC = () => {
       <div className="flex items-center space-x-4">
         {session ? (
           <>
-            <SafeButton to="/dashboard" variant="ghost">
-              <Home className="h-4 w-4 inline-block mr-2" />
-              Dashboard
-            </SafeButton>
-            <SafeButton to="/lessons" variant="ghost">
-              <BookOpen className="h-4 w-4 inline-block mr-2" />
-              Lessons
-            </SafeButton>
-            <SafeButton variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-600">
+            <Button asChild variant="ghost">
+              <Link to="/dashboard">
+                <Home className="h-4 w-4 inline-block mr-2" />
+                Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link to="/lessons">
+                <BookOpen className="h-4 w-4 inline-block mr-2" />
+                Lessons
+              </Link>
+            </Button>
+            <Button variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-600">
               <LogOut className="h-4 w-4 inline-block mr-2" />
               Logout
-            </SafeButton>
+            </Button>
           </>
         ) : (
-          <SafeButton to="/auth">Login / Signup</SafeButton>
+          <Button asChild>
+            <Link to="/auth">Login / Signup</Link>
+          </Button>
         )}
       </div>
     </nav>

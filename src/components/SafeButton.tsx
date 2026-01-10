@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
-import { Link, LinkProps } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface SafeButtonProps extends ButtonProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ const SafeButton: React.FC<SafeButtonProps> = ({ children, to, ...props }) => {
     );
   }
 
-  // For regular buttons, ensure children is always wrapped properly
+  // For regular buttons
   return (
     <Button {...props}>
       {children}
