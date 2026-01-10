@@ -138,7 +138,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
           <DialogTrigger asChild>
             <SafeButton>
               <Plus className="mr-2 h-4 w-4 inline-block" />
-              <span>Add New Learner</span>
+              Add New Learner
             </SafeButton>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">

@@ -32,15 +32,15 @@ const Navbar: React.FC = () => {
           <>
             <SafeButton to="/dashboard" variant="ghost">
               <Home className="h-4 w-4 inline-block mr-2" />
-              <span>Dashboard</span>
+              Dashboard
             </SafeButton>
             <SafeButton to="/lessons" variant="ghost">
               <BookOpen className="h-4 w-4 inline-block mr-2" />
-              <span>Lessons</span>
+              Lessons
             </SafeButton>
             <SafeButton variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-600">
               <LogOut className="h-4 w-4 inline-block mr-2" />
-              <span>Logout</span>
+              Logout
             </SafeButton>
           </>
         ) : (
