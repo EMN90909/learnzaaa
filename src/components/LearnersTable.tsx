@@ -18,6 +18,9 @@ import AddLearnerForm from './AddLearnerForm';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Added import
+import { Calendar } from '@/components/ui/calendar'; // Added import
+import { cn } from '@/lib/utils'; // Added import
 
 interface Learner {
   id: string;
