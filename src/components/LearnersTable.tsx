@@ -137,7 +137,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         <Dialog open={isAddLearnerModalOpen} onOpenChange={setIsAddLearnerModalOpen}>
           <DialogTrigger asChild>
             <SafeButton>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4 inline-block" />
               <span>Add New Learner</span>
             </SafeButton>
           </DialogTrigger>

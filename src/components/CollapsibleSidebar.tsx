@@ -28,14 +28,14 @@ const CollapsibleSidebar: React.FC = () => {
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
         <SafeButton variant="ghost" className="w-full justify-start" asChild>
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <Home className="h-5 w-5" />
+          <Link to="/dashboard">
+            <Home className="h-5 w-5 inline-block mr-2" />
             {isOpen && <span>Dashboard</span>}
           </Link>
         </SafeButton>
         <SafeButton variant="ghost" className="w-full justify-start" asChild>
-          <Link to="/lessons" className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
+          <Link to="/lessons">
+            <BookOpen className="h-5 w-5 inline-block mr-2" />
             {isOpen && <span>Lessons</span>}
           </Link>
         </SafeButton>

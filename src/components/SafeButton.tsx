@@ -8,18 +8,36 @@ interface SafeButtonProps extends ButtonProps {
 }
 
 const SafeButton: React.FC<SafeButtonProps> = ({ children, asChild, ...props }) => {
-  // Handle the asChild case specially
+  // If asChild is used, we need to ensure we have exactly one child
   if (asChild) {
-    const child = React.Children.only(children) as React.ReactElement;
+    const childrenArray = React.Children.toArray(children);
+
+    // If there are multiple children, wrap them in a single element
+    if (childrenArray.length > 1) {
+      const wrappedChild = (
+        <span className="flex items-center gap-2">
+          {children}
+        </span>
+      );
+
+      // Clone the element and pass props
+      return React.cloneElement(wrappedChild, {
+        ...props,
+        className: `${wrappedChild.props.className || ''} ${props.className || ''}`
+      });
+    }
+
+    // If there's exactly one child, clone it with props
+    const child = childrenArray[0] as React.ReactElement;
     return React.cloneElement(child, {
-      className: child.props.className,
       ...props,
+      className: `${child.props.className || ''} ${props.className || ''}`
     });
   }
 
-  // For regular buttons, ensure children is always wrapped in a single element
+  // For regular buttons, ensure children is always wrapped properly
   const wrappedChildren = React.Children.count(children) > 1
-    ? <span>{children}</span>
+    ? <span className="flex items-center gap-2">{children}</span>
     : children;
 
   return (

@@ -31,19 +31,19 @@ const Navbar: React.FC = () => {
         {session ? (
           <>
             <SafeButton variant="ghost" asChild>
-              <Link to="/dashboard" className="flex items-center gap-2">
-                <Home className="h-4 w-4" />
+              <Link to="/dashboard">
+                <Home className="h-4 w-4 inline-block mr-2" />
                 <span>Dashboard</span>
               </Link>
             </SafeButton>
             <SafeButton variant="ghost" asChild>
-              <Link to="/lessons" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
+              <Link to="/lessons">
+                <BookOpen className="h-4 w-4 inline-block mr-2" />
                 <span>Lessons</span>
               </Link>
             </SafeButton>
-            <SafeButton variant="ghost" onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-600">
-              <LogOut className="h-4 w-4" />
+            <SafeButton variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-600">
+              <LogOut className="h-4 w-4 inline-block mr-2" />
               <span>Logout</span>
             </SafeButton>
           </>
