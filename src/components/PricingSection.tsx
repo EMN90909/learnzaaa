@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -37,6 +37,18 @@ const pricingPlans = [
 ];
 
 const PricingSection: React.FC = () => {
+  useEffect(() => {
+    // Load Stripe buy button script
+    const script = document.createElement('script');
+    script.src = "https://js.stripe.com/v3/buy-button.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   return (
     <section className="py-16 px-4 bg-white dark:bg-gray-900">
       <div className="container mx-auto">
@@ -65,9 +77,19 @@ const PricingSection: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                <Button asChild className="w-full" variant={plan.buttonVariant as any}>
-                  <Link to="/auth">{plan.buttonText}</Link>
-                </Button>
+                {plan.title === "Free Plan" ? (
+                  <Button asChild className="w-full" variant={plan.buttonVariant as any}>
+                    <Link to="/auth">{plan.buttonText}</Link>
+                  </Button>
+                ) : (
+                  <div className="stripe-buy-button-container">
+                    <stripe-buy-button
+                      buy-button-id={process.env.VITE_STRIPE_BUY_BUTTON_ID}
+                      publishable-key={process.env.VITE_STRIPE_PUBLISHABLE_KEY}
+                    >
+                    </stripe-buy-button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

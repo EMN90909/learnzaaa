@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +8,7 @@ import { showSuccess, showError } from '@/utils/toast';
 
 const Navbar: React.FC = () => {
   const { session, loading } = useSession();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -18,15 +19,26 @@ const Navbar: React.FC = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    if (session) {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
+    }
+  };
+
   if (loading) {
     return null;
   }
 
   return (
     <nav className="bg-background shadow-none p-4 flex justify-between items-center">
-      <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+      <button
+        onClick={handleLogoClick}
+        className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
+      >
         Learnzaa
-      </Link>
+      </button>
       <div className="flex items-center space-x-4">
         {session ? (
           <>

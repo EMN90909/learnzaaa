@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -214,11 +212,10 @@ const LearnerPage: React.FC = () => {
       const group = calculateAgeGroup(parsedLearner.dob);
       setAgeGroup(group);
 
-      // Fetch lessons appropriate for age group
+      // Fetch all lessons (removed age_range filter)
       const { data: lessonsData, error: lessonsError } = await supabase
         .from('lessons')
-        .select('*')
-        .or(`age_range.eq.${group},age_range.eq.all`);
+        .select('*');
 
       if (lessonsError) throw lessonsError;
       setLessons(lessonsData || []);

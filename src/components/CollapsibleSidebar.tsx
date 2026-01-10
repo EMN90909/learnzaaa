@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Home, Users, ChevronLeft, ChevronRight, Plus, LogOut } from 'lucide-react';
+import { Home, Users, ChevronLeft, ChevronRight, Plus, LogOut, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from '@/integrations/supabase/supabaseContext';
@@ -64,6 +64,13 @@ const CollapsibleSidebar: React.FC = () => {
           <Link to="/learners/add">
             <Plus className="h-5 w-5 inline-block mr-2" />
             {isOpen && <span>Add Learner</span>}
+          </Link>
+        </Button>
+
+        <Button asChild variant="ghost" className="w-full justify-start text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent">
+          <Link to="/billing">
+            <CreditCard className="h-5 w-5 inline-block mr-2" />
+            {isOpen && <span>Billing</span>}
           </Link>
         </Button>
       </nav>

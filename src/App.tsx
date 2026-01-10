@@ -16,6 +16,11 @@ import LearnerAuthPage from "./pages/LearnerAuthPage";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import AddLearnerPage from "./pages/AddLearnerPage";
 import LearnerPage from "./pages/LearnerPage";
+import BillingPage from "./pages/BillingPage";
+import AboutPage from "./pages/AboutPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import ContactPage from "./pages/ContactPage";
 
 const queryClient = new QueryClient();
 
@@ -37,11 +42,17 @@ const App = () => (
               <Route path="/lessons" element={<LessonsPage />} />
               <Route path="/learners" element={<LearnersDashboard />} />
               <Route path="/learners/add" element={<AddLearnerPage />} />
+              <Route path="/billing" element={<BillingPage />} />
               {/* Add other protected routes here */}
             </Route>
             {/* Learner Dashboard Route - Not protected by PrivateRoute */}
             <Route path="/learner-dashboard" element={<LearnerDashboard />} />
             <Route path="/learner-page" element={<LearnerPage />} />
+            {/* Public Pages */}
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

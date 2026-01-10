@@ -4,12 +4,13 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, FileText, Image as ImageIcon, File as FilePdf, Loader2, Lightbulb, Copy, Check, AlertCircle, Files, PartyPopper, X, Camera, GraduationCap } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, File as FilePdf, Loader2, Lightbulb, Copy, Check, AlertCircle, Files, X, Camera, GraduationCap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface HomeworkUploadProps {
   learnerId: string;
@@ -478,7 +479,7 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
 
       {/* AI Homework Helper Dialog */}
       <Dialog open={isAIHelperOpen} onOpenChange={setIsAIHelperOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <GraduationCap className="text-blue-600" /> Homework Helper
@@ -488,148 +489,150 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
             </DialogDescription>
           </DialogHeader>
 
-          <div className="min-h-[500px] bg-[#f1f5f9] flex flex-col items-center py-8 px-4 font-sans text-slate-900">
-            <div className="w-full max-w-3xl">
-              <div className="flex flex-col items-center mb-10 text-center">
-                <div className="bg-blue-600 p-3 rounded-2xl shadow-lg shadow-blue-200 mb-4 text-white">
-                  <GraduationCap size={32} />
-                </div>
-                <h1 className="text-4xl font-black tracking-tight text-slate-900">Homework Helper</h1>
-                <p className="text-slate-500 mt-2 text-lg font-medium">Scan multiple pages for a full guide!</p>
-              </div>
-
-              <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-300/50 border border-white overflow-hidden">
-                <div
-                  className={`p-6 md:p-10 border-4 border-dashed m-4 rounded-[1.5rem] transition-all flex flex-col items-center justify-center
-                    ${images.length > 0 ? 'border-blue-100 bg-blue-50/10' : 'border-slate-100 bg-white'}`}
-                >
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleAIHelperFileChange}
-                    className="hidden"
-                    accept="image/*"
-                    multiple
-                  />
-
-                  {images.length === 0 ? (
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex flex-col items-center cursor-pointer py-10"
-                    >
-                      <div className="bg-blue-600 p-4 rounded-full shadow-lg text-white mb-4 animate-pulse">
-                        <Upload size={32} />
-                      </div>
-                      <p className="text-xl font-bold text-slate-700 text-center">Tap to upload photos</p>
-                      <p className="text-sm text-slate-400 mt-1 font-medium">You can select multiple files at once</p>
-                    </div>
-                  ) : (
-                    <div className="w-full">
-                      <div className="flex flex-wrap gap-4 justify-center mb-8">
-                        {images.map((img) => (
-                          <div key={img.id} className="relative group animate-in zoom-in-50 duration-300">
-                            <img
-                              src={img.url}
-                              className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-2xl shadow-md border-2 border-white"
-                              alt="Thumbnail"
-                            />
-                            <button
-                              onClick={() => removeImage(img.id)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        ))}
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-24 h-24 md:w-32 md:h-32 border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center text-blue-400 hover:bg-blue-50 transition-all"
-                        >
-                          <Upload size={24} />
-                          <span className="text-xs font-bold mt-1">Add More</span>
-                        </button>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                        <button
-                          onClick={() => setImages([])}
-                          className="px-5 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95"
-                        >
-                          Clear All
-                        </button>
-                        <button
-                          onClick={getHomeworkHelp}
-                          disabled={loading || images.length === 0}
-                          className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center gap-2 shadow-lg shadow-blue-200 active:scale-95"
-                        >
-                          {loading ? <Loader2 className="animate-spin" size={18} /> : <Files size={18} />}
-                          {loading ? "Analyzing..." : `Help with ${images.length} Page${images.length > 1 ? 's' : ''}`}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {loading && (
-                  <div className="px-8 pb-10 text-center animate-in fade-in duration-500">
-                    <div className="flex justify-center mb-4"><div className="bg-blue-100 p-3 rounded-full"><Lightbulb className="text-blue-600 animate-pulse" size={24} /></div></div>
-                    <p className="text-slate-600 font-bold text-lg">{status}</p>
+          <ScrollArea className="h-[calc(90vh-120px)]">
+            <div className="min-h-[500px] bg-[#f1f5f9] flex flex-col items-center py-8 px-4 font-sans text-slate-900">
+              <div className="w-full max-w-3xl">
+                <div className="flex flex-col items-center mb-10 text-center">
+                  <div className="bg-blue-600 p-3 rounded-2xl shadow-lg shadow-blue-200 mb-4 text-white">
+                    <GraduationCap size={32} />
                   </div>
-                )}
+                  <h1 className="text-4xl font-black tracking-tight text-slate-900">Homework Helper</h1>
+                  <p className="text-slate-500 mt-2 text-lg font-medium">Scan multiple pages for a full guide!</p>
+                </div>
 
-                {error && (
-                  <div className="mx-8 mb-8 p-4 bg-red-50 border-2 border-red-100 rounded-2xl text-red-600 flex items-center gap-3"><AlertCircle size={24} /><p className="font-bold">{error}</p></div>
-                )}
+                <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-300/50 border border-white overflow-hidden">
+                  <div
+                    className={`p-6 md:p-10 border-4 border-dashed m-4 rounded-[1.5rem] transition-all flex flex-col items-center justify-center
+                      ${images.length > 0 ? 'border-blue-100 bg-blue-50/10' : 'border-slate-100 bg-white'}`}
+                  >
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleAIHelperFileChange}
+                      className="hidden"
+                      accept="image/*"
+                      multiple
+                    />
 
-                {guide && !loading && (
-                  <div className="p-8 border-t border-slate-50 bg-white animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                      <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3"><div className="w-3 h-10 bg-blue-600 rounded-full"></div>Study Guide</h2>
-                      <button onClick={copyToClipboard} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl transition-all font-bold text-sm shadow-sm ${copied ? 'bg-green-500 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}>
-                        {copied ? <Check size={18} /> : <Copy size={18} />} {copied ? "Copied!" : "Copy Everything"}
-                      </button>
-                    </div>
-
-                    <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 mb-8">
-                      <div className="prose prose-slate max-w-none">
-                        {renderFormattedText(guide)}
-                      </div>
-                    </div>
-
-                    {!challengeResponse ? (
-                      <button
-                        onClick={revealChallenge}
-                        disabled={revealing}
-                        className="w-full mt-4 p-6 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-100 relative overflow-hidden group hover:bg-blue-700 transition-all active:scale-[0.98]"
+                    {images.length === 0 ? (
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex flex-col items-center cursor-pointer py-10"
                       >
-                        <div className="absolute top-0 right-0 p-4 opacity-20 transform group-hover:rotate-12 transition-transform">
-                          {revealing ? <Loader2 className="animate-spin" size={64} /> : <Lightbulb size={64} />}
+                        <div className="bg-blue-600 p-4 rounded-full shadow-lg text-white mb-4 animate-pulse">
+                          <Upload size={32} />
                         </div>
-                        <div className="flex flex-col items-start text-left">
-                          <h4 className="font-black text-xl mb-1 flex items-center gap-2">
-                            Ready for the Challenge? {revealing && "..."}
-                          </h4>
-                          <p className="text-blue-50 font-medium">
-                            {revealing ? "Checking my notes..." : "I've left a tiny bit for you. Click here to check the final steps! 🚀"}
-                          </p>
-                        </div>
-                      </button>
+                        <p className="text-xl font-bold text-slate-700 text-center">Tap to upload photos</p>
+                        <p className="text-sm text-slate-400 mt-1 font-medium">You can select multiple files at once</p>
+                      </div>
                     ) : (
-                      <div className="mt-4 p-6 bg-green-50 border-2 border-green-200 rounded-[2rem] animate-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="bg-green-500 p-2 rounded-full text-white"><PartyPopper size={20} /></div>
-                          <h4 className="font-black text-green-800 text-xl text-left">The Reveal!</h4>
+                      <div className="w-full">
+                        <div className="flex flex-wrap gap-4 justify-center mb-8">
+                          {images.map((img) => (
+                            <div key={img.id} className="relative group animate-in zoom-in-50 duration-300">
+                              <img
+                                src={img.url}
+                                className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-2xl shadow-md border-2 border-white"
+                                alt="Thumbnail"
+                              />
+                              <button
+                                onClick={() => removeImage(img.id)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-24 h-24 md:w-32 md:h-32 border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center text-blue-400 hover:bg-blue-50 transition-all"
+                          >
+                            <Upload size={24} />
+                            <span className="text-xs font-bold mt-1">Add More</span>
+                          </button>
                         </div>
-                        <div className="prose prose-green max-w-none text-green-900 text-left">
-                          {renderFormattedText(challengeResponse)}
+
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                          <button
+                            onClick={() => setImages([])}
+                            className="px-5 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95"
+                          >
+                            Clear All
+                          </button>
+                          <button
+                            onClick={getHomeworkHelp}
+                            disabled={loading || images.length === 0}
+                            className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center gap-2 shadow-lg shadow-blue-200 active:scale-95"
+                          >
+                            {loading ? <Loader2 className="animate-spin" size={18} /> : <Files size={18} />}
+                            {loading ? "Analyzing..." : `Help with ${images.length} Page${images.length > 1 ? 's' : ''}`}
+                          </button>
                         </div>
                       </div>
                     )}
                   </div>
-                )}
+
+                  {loading && (
+                    <div className="px-8 pb-10 text-center animate-in fade-in duration-500">
+                      <div className="flex justify-center mb-4"><div className="bg-blue-100 p-3 rounded-full"><Lightbulb className="text-blue-600 animate-pulse" size={24} /></div></div>
+                      <p className="text-slate-600 font-bold text-lg">{status}</p>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="mx-8 mb-8 p-4 bg-red-50 border-2 border-red-100 rounded-2xl text-red-600 flex items-center gap-3"><AlertCircle size={24} /><p className="font-bold">{error}</p></div>
+                  )}
+
+                  {guide && !loading && (
+                    <div className="p-8 border-t border-slate-50 bg-white animate-in fade-in slide-in-from-bottom-8 duration-700">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <h2 className="text-3xl font-black text-slate-900 flex items-center gap-3"><div className="w-3 h-10 bg-blue-600 rounded-full"></div>Study Guide</h2>
+                        <button onClick={copyToClipboard} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl transition-all font-bold text-sm shadow-sm ${copied ? 'bg-green-500 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}>
+                          {copied ? <Check size={18} /> : <Copy size={18} />} {copied ? "Copied!" : "Copy Everything"}
+                        </button>
+                      </div>
+
+                      <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 mb-8">
+                        <div className="prose prose-slate max-w-none">
+                          {renderFormattedText(guide)}
+                        </div>
+                      </div>
+
+                      {!challengeResponse ? (
+                        <button
+                          onClick={revealChallenge}
+                          disabled={revealing}
+                          className="w-full mt-4 p-6 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-100 relative overflow-hidden group hover:bg-blue-700 transition-all active:scale-[0.98]"
+                        >
+                          <div className="absolute top-0 right-0 p-4 opacity-20 transform group-hover:rotate-12 transition-transform">
+                            {revealing ? <Loader2 className="animate-spin" size={64} /> : <Lightbulb size={64} />}
+                          </div>
+                          <div className="flex flex-col items-start text-left">
+                            <h4 className="font-black text-xl mb-1 flex items-center gap-2">
+                              Ready for the Challenge? {revealing && "..."}
+                            </h4>
+                            <p className="text-blue-50 font-medium">
+                              {revealing ? "Checking my notes..." : "I've left a tiny bit for you. Click here to check the final steps! 🚀"}
+                            </p>
+                          </div>
+                        </button>
+                      ) : (
+                        <div className="mt-4 p-6 bg-green-50 border-2 border-green-200 rounded-[2rem] animate-in slide-in-from-bottom-4 duration-500">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="bg-green-500 p-2 rounded-full text-white"><PartyPopper size={20} /></div>
+                            <h4 className="font-black text-green-800 text-xl text-left">The Reveal!</h4>
+                          </div>
+                          <div className="prose prose-green max-w-none text-green-900 text-left">
+                            {renderFormattedText(challengeResponse)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </>
