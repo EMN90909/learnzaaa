@@ -26,7 +26,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   username: z.string().min(2, { message: 'Username must be at least 2 characters.' }),
   pin: z.string().min(4, { message: 'PIN must be at least 4 characters.' }).max(4, { message: 'PIN must be 4 characters.' }).regex(/^\d+$/, { message: 'PIN must be numeric.' }),
-  dob: z.date({ required_error: 'Date of birth is required.' }),
+  age: z.number().min(5, { message: 'Age must be at least 5.' }).max(18, { message: 'Age must be 18 or less.' }),
   grade: z.string().min(1, { message: 'Class is required.' }),
 });
 
@@ -43,7 +43,7 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
       name: '',
       username: '',
       pin: '',
-      dob: undefined,
+      age: 10,
       grade: '',
     },
   });
@@ -67,6 +67,10 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
         return;
       }
 
+      // Calculate approximate date of birth from age
+      const currentYear = new Date().getFullYear();
+      const dob = new Date(currentYear - values.age, 0, 1).toISOString().split('T')[0];
+
       // IMPORTANT: In a real application, PINs should be securely hashed server-side.
       // For this example, we are storing it as plain text.
       const { data, error } = await supabase.from('learners').insert({
@@ -74,7 +78,7 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
         name: values.name,
         username: values.username,
         pin_hash: values.pin, // Storing as plain text for now, needs server-side hashing
-        dob: values.dob.toISOString().split('T')[0], // Format date to YYYY-MM-DD
+        dob: dob,
         grade: values.grade,
       });
 
@@ -143,43 +147,20 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
         />
         <FormField
           control={form.control}
-          name="dob"
+          name="age"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Date of Birth</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal flex justify-between items-center",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      <span className="flex items-center justify-between w-full">
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="h-4 w-4 opacity-50" />
-                      </span>
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <FormItem>
+              <FormLabel>Age</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Age"
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                  min="5"
+                  max="18"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
