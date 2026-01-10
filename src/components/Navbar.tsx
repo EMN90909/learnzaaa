@@ -30,17 +30,13 @@ const Navbar: React.FC = () => {
       <div className="flex items-center space-x-4">
         {session ? (
           <>
-            <SafeButton variant="ghost" asChild>
-              <Link to="/dashboard">
-                <Home className="h-4 w-4 inline-block mr-2" />
-                <span>Dashboard</span>
-              </Link>
+            <SafeButton to="/dashboard" variant="ghost">
+              <Home className="h-4 w-4 inline-block mr-2" />
+              <span>Dashboard</span>
             </SafeButton>
-            <SafeButton variant="ghost" asChild>
-              <Link to="/lessons">
-                <BookOpen className="h-4 w-4 inline-block mr-2" />
-                <span>Lessons</span>
-              </Link>
+            <SafeButton to="/lessons" variant="ghost">
+              <BookOpen className="h-4 w-4 inline-block mr-2" />
+              <span>Lessons</span>
             </SafeButton>
             <SafeButton variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-600">
               <LogOut className="h-4 w-4 inline-block mr-2" />
@@ -48,9 +44,7 @@ const Navbar: React.FC = () => {
             </SafeButton>
           </>
         ) : (
-          <SafeButton asChild>
-            <Link to="/auth">Login / Signup</Link>
-          </SafeButton>
+          <SafeButton to="/auth">Login / Signup</SafeButton>
         )}
       </div>
     </nav>

@@ -2,37 +2,21 @@
 
 import React from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
+import { Link, LinkProps } from 'react-router-dom';
 
 interface SafeButtonProps extends ButtonProps {
   children: React.ReactNode;
+  to?: string;
 }
 
-const SafeButton: React.FC<SafeButtonProps> = ({ children, asChild, ...props }) => {
-  // If asChild is used, we need to ensure we have exactly one child
-  if (asChild) {
-    const childrenArray = React.Children.toArray(children);
-
-    // If there are multiple children, wrap them in a single element
-    if (childrenArray.length > 1) {
-      const wrappedChild = (
-        <span className="flex items-center gap-2">
-          {children}
-        </span>
-      );
-
-      // Clone the element and pass props
-      return React.cloneElement(wrappedChild, {
-        ...props,
-        className: `${wrappedChild.props.className || ''} ${props.className || ''}`
-      });
-    }
-
-    // If there's exactly one child, clone it with props
-    const child = childrenArray[0] as React.ReactElement;
-    return React.cloneElement(child, {
-      ...props,
-      className: `${child.props.className || ''} ${props.className || ''}`
-    });
+const SafeButton: React.FC<SafeButtonProps> = ({ children, to, ...props }) => {
+  // If 'to' prop is provided, render as a Link
+  if (to) {
+    return (
+      <Link to={to} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+        {children}
+      </Link>
+    );
   }
 
   // For regular buttons, ensure children is always wrapped properly

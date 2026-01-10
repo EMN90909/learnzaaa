@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import SafeButton from '@/components/SafeButton';
 import { Home, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,17 +26,13 @@ const CollapsibleSidebar: React.FC = () => {
         </SafeButton>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
-        <SafeButton variant="ghost" className="w-full justify-start" asChild>
-          <Link to="/dashboard">
-            <Home className="h-5 w-5 inline-block mr-2" />
-            {isOpen && <span>Dashboard</span>}
-          </Link>
+        <SafeButton to="/dashboard" variant="ghost" className="w-full justify-start">
+          <Home className="h-5 w-5 inline-block mr-2" />
+          {isOpen && <span>Dashboard</span>}
         </SafeButton>
-        <SafeButton variant="ghost" className="w-full justify-start" asChild>
-          <Link to="/lessons">
-            <BookOpen className="h-5 w-5 inline-block mr-2" />
-            {isOpen && <span>Lessons</span>}
-          </Link>
+        <SafeButton to="/lessons" variant="ghost" className="w-full justify-start">
+          <BookOpen className="h-5 w-5 inline-block mr-2" />
+          {isOpen && <span>Lessons</span>}
         </SafeButton>
       </nav>
     </div>
