@@ -97,8 +97,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup =
             return match ? (
               <SyntaxHighlighter
                 language={match[1]}
-                Prism={typeof window !== 'undefined' ? require('prismjs') : null}
-                theme={typeof window !== 'undefined' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? require('prism-react-renderer/themes/vsDark') : require('prism-react-renderer/themes/vsLight')) : null}
+                theme={typeof window !== 'undefined' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? require('prism-react-renderer/themes/vsDark') : require('prism-react-renderer/themes/vsLight')) : undefined}
               >
                 {String(children).replace(/\n$/, '')}
               </SyntaxHighlighter>
