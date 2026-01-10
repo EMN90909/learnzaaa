@@ -156,12 +156,7 @@ const DashboardPage: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Your Learners</h2>
-                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Link to="/learners/add">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add New Learner
-                  </Link>
-                </Button>
+                {/* Removed the duplicate Add Learner button from here */}
               </div>
               <LearnersTable orgId={profile.org_id} />
             </div>

@@ -146,7 +146,7 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "w-full pl-3 text-left font-normal flex justify-between items-center", // Added flex and justify-between
+                        "w-full pl-3 text-left font-normal flex justify-between items-center",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -177,7 +177,22 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Add Learner</Button>
+        <FormField
+          control={form.control}
+          name="grade"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Class/Grade</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Grade 5, Class 7" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+          Add Learner
+        </Button>
       </form>
     </Form>
   );
