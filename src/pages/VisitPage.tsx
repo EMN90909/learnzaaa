@@ -17,7 +17,7 @@ const VisitPage = () => {
             <Link to="/auth">Get Started</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-gray-700">
-            <Link to="/lessons">Explore Lessons</Link>
+            <Link to="/learners">Explore Lessons</Link>
           </Button>
         </div>
       </div>
