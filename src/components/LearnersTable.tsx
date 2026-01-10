@@ -262,12 +262,14 @@ const EditLearnerForm: React.FC<EditLearnerFormProps> = ({ learner, onUpdate, on
                 !dob && "text-muted-foreground"
               )}
             >
-              {dob ? (
-                format(dob, "PPP")
-              ) : (
-                <span>Pick a date</span>
-              )}
-              <CalendarIcon className="h-4 w-4 opacity-50" />
+              <span className="flex items-center justify-between w-full">
+                {dob ? (
+                  format(dob, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+                <CalendarIcon className="h-4 w-4 opacity-50" />
+              </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

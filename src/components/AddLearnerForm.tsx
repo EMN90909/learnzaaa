@@ -133,12 +133,14 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
                         !field.value && "text-muted-foreground"
                       )}
                     >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="h-4 w-4 opacity-50" />
+                      <span className="flex items-center justify-between w-full">
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="h-4 w-4 opacity-50" />
+                      </span>
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
