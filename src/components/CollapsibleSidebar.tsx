@@ -43,12 +43,12 @@ const CollapsibleSidebar: React.FC<CollapsibleSidebarProps> = ({ children }) => 
             {isOpen && <span>Lessons</span>}
           </Link>
         </Button>
-        {children && (
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            {children}
-          </div>
-        )}
       </nav>
+      {children && (
+        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+          {children}
+        </div>
+      )}
     </div>
   );
 };
