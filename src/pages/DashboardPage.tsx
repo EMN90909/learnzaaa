@@ -32,13 +32,11 @@ const DashboardPage: React.FC = () => {
         .single();
 
       if (error) {
-        showError('Failed to fetch profile: ' + error.message);
+        showError('Failed to fetch profile');
         console.error('Error fetching profile:', error);
       } else {
         setProfile(data);
-        showSuccess('Profile loaded successfully!');
-
-        // If no org_id exists, create one
+        // Only show success message if this is the first load
         if (!data.org_id) {
           await createOrganization(data.id, data.display_name || data.email);
         }
@@ -62,7 +60,9 @@ const DashboardPage: React.FC = () => {
         .select()
         .single();
 
-      if (orgError) throw orgError;
+      if (orgError) {
+        throw orgError;
+      }
 
       // Update profile with org_id
       const { error: profileError } = await supabase
@@ -70,12 +70,14 @@ const DashboardPage: React.FC = () => {
         .update({ org_id: orgData.id })
         .eq('id', userId);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        throw profileError;
+      }
 
-      showSuccess('Organization created successfully!');
       setProfile(prev => prev ? { ...prev, org_id: orgData.id } : null);
+      showSuccess('Organization created successfully!');
     } catch (error: any) {
-      showError('Failed to create organization: ' + error.message);
+      showError('Failed to create organization');
       console.error('Error creating organization:', error);
     } finally {
       setCreatingOrg(false);

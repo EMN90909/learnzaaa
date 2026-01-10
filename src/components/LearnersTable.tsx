@@ -22,6 +22,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Learner {
   id: string;
@@ -44,6 +46,8 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
   const [isAddLearnerModalOpen, setIsAddLearnerModalOpen] = useState(false);
   const [isEditLearnerModalOpen, setIsEditLearnerModalOpen] = useState(false);
   const [editingLearner, setEditingLearner] = useState<Learner | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLearner, setSelectedLearner] = useState<Learner | null>(null);
 
   const fetchLearners = async () => {
     setLoading(true);
@@ -53,11 +57,10 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       .eq('org_id', orgId);
 
     if (error) {
-      showError('Failed to fetch learners: ' + error.message);
+      showError('Failed to fetch learners');
       console.error('Error fetching learners:', error);
     } else {
       setLearners(data || []);
-      showSuccess('Learners loaded successfully!');
     }
     setLoading(false);
   };
@@ -96,7 +99,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       setIsEditLearnerModalOpen(false);
       setEditingLearner(null);
     } catch (error: any) {
-      showError('Failed to update learner: ' + error.message);
+      showError('Failed to update learner');
       console.error('Error updating learner:', error);
     }
   };
@@ -118,10 +121,16 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       showSuccess('Learner deleted successfully!');
       fetchLearners();
     } catch (error: any) {
-      showError('Failed to delete learner: ' + error.message);
+      showError('Failed to delete learner');
       console.error('Error deleting learner:', error);
     }
   };
+
+  const filteredLearners = learners.filter(learner =>
+    learner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    learner.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    learner.grade.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -133,29 +142,50 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Your Learners</h2>
-        <Dialog open={isAddLearnerModalOpen} onOpenChange={setIsAddLearnerModalOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4 inline-block" />
-              Add New Learner
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New Learner</DialogTitle>
-              <DialogDescription>
-                Fill in the details below to add a new learner to your organization.
-              </DialogDescription>
-            </DialogHeader>
-            <AddLearnerForm orgId={orgId} onLearnerAdded={handleLearnerAdded} onClose={() => setIsAddLearnerModalOpen(false)} />
-          </DialogContent>
-        </Dialog>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <h2 className="text-2xl font-bold">Your Learners</h2>
+          <Badge variant="secondary" className="text-sm">
+            {learners.length} total learners
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Input
+            placeholder="Search learners..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-xs"
+          />
+          <Dialog open={isAddLearnerModalOpen} onOpenChange={setIsAddLearnerModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <Plus className="mr-2 h-4 w-4 inline-block" />
+                Add New Learner
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Learner</DialogTitle>
+                <DialogDescription>
+                  Fill in the details below to add a new learner to your organization.
+                </DialogDescription>
+              </DialogHeader>
+              <AddLearnerForm orgId={orgId} onLearnerAdded={handleLearnerAdded} onClose={() => setIsAddLearnerModalOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {learners.length === 0 ? (
-        <p className="text-center text-gray-600 dark:text-gray-400">No learners added yet. Click "Add New Learner" to get started!</p>
+        <Card className="text-center p-8">
+          <CardContent>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">No learners added yet.</p>
+            <Button onClick={() => setIsAddLearnerModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="mr-2 h-4 w-4 inline-block" />
+              Add First Learner
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="rounded-md border">
           <Table>
@@ -165,23 +195,27 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
                 <TableHead>Username</TableHead>
                 <TableHead>Date of Birth</TableHead>
                 <TableHead>Class/Grade</TableHead>
-                <TableHead>PIN</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {learners.map((learner) => (
-                <TableRow key={learner.id}>
+              {filteredLearners.map((learner) => (
+                <TableRow
+                  key={learner.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
+                  onClick={() => setSelectedLearner(learner)}
+                >
                   <TableCell className="font-medium">{learner.name}</TableCell>
                   <TableCell>{learner.username}</TableCell>
                   <TableCell>{format(new Date(learner.dob), 'PPP')}</TableCell>
-                  <TableCell>{learner.grade}</TableCell>
-                  <TableCell>{learner.pin_hash}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{learner.grade}</Badge>
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(learner)} className="mr-2">
+                    <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleEditClick(learner)}} className="mr-2">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteLearner(learner.id)}>
+                    <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleDeleteLearner(learner.id)}}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </TableCell>
@@ -190,6 +224,37 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
             </TableBody>
           </Table>
         </div>
+      )}
+
+      {selectedLearner && (
+        <Dialog open={!!selectedLearner} onOpenChange={() => setSelectedLearner(null)}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{selectedLearner.name}</DialogTitle>
+              <DialogDescription>Learner Details</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Username</p>
+                  <p className="font-medium">{selectedLearner.username}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Grade</p>
+                  <p className="font-medium">{selectedLearner.grade}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Date of Birth</p>
+                <p className="font-medium">{format(new Date(selectedLearner.dob), 'PPPP')}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Joined</p>
+                <p className="font-medium">{new Date(selectedLearner.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       <Dialog open={isEditLearnerModalOpen} onOpenChange={setIsEditLearnerModalOpen}>

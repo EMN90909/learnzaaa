@@ -50,6 +50,23 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // Check if username already exists
+      const { data: existingLearner, error: checkError } = await supabase
+        .from('learners')
+        .select('*')
+        .eq('username', values.username)
+        .eq('org_id', orgId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existingLearner) {
+        showError('Username already exists. Please choose a different one.');
+        return;
+      }
+
       // IMPORTANT: In a real application, PINs should be securely hashed server-side.
       // For this example, we are storing it as plain text.
       const { data, error } = await supabase.from('learners').insert({
@@ -70,7 +87,7 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
       onLearnerAdded();
       onClose();
     } catch (error: any) {
-      showError('Failed to add learner: ' + error.message);
+      showError('Failed to add learner');
       console.error('Error adding learner:', error);
     }
   };

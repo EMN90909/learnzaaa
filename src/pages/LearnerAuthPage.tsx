@@ -28,7 +28,12 @@ const LearnerAuthPage: React.FC = () => {
         .single();
 
       if (error) {
-        throw error;
+        if (error.code === 'PGRST116') {
+          showError('Invalid username or PIN');
+        } else {
+          throw error;
+        }
+        return;
       }
 
       if (!data) {
@@ -41,7 +46,7 @@ const LearnerAuthPage: React.FC = () => {
       showSuccess(`Welcome back, ${data.name}!`);
       navigate('/learner-dashboard');
     } catch (error: any) {
-      showError('Login failed: ' + error.message);
+      showError('Login failed');
       console.error('Login error:', error);
     } finally {
       setLoading(false);
