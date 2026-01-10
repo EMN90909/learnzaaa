@@ -3,7 +3,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'prism-react-renderer';
 import { cn } from '@/lib/utils';
 
 interface MarkdownRendererProps {
@@ -93,15 +92,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup =
             <p className={cn("mb-4", styles.paragraphSpacing)} {...props} />
           ),
           code: ({node, className, children, ...props}) => {
-            const match = /language-(\w+)/.exec(className || '');
-            return match ? (
-              <SyntaxHighlighter
-                language={match[1]}
-                theme={typeof window !== 'undefined' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? require('prism-react-renderer/themes/vsDark') : require('prism-react-renderer/themes/vsLight')) : undefined}
-              >
-                {String(children).replace(/\n$/, '')}
-              </SyntaxHighlighter>
-            ) : (
+            return (
               <code className={cn(className, "bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded")} {...props}>
                 {children}
               </code>
