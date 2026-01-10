@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Phone, MapPin, Send, User, MessageCircle, HelpCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, User, MessageCircle, HelpCircle, Instagram, Twitter, Facebook } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 const ContactPage: React.FC = () => {

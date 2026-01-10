@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 interface Profile {
   id: string;
@@ -24,6 +25,9 @@ interface Profile {
   org_id?: string;
   stripe_account_id?: string;
   stripe_onboarded?: boolean;
+  is_paid_user?: boolean;
+  daily_api_calls?: number;
+  max_daily_api_calls?: number;
 }
 
 interface Subscription {
@@ -64,6 +68,16 @@ const BillingPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [stripeOnboardingUrl, setStripeOnboardingUrl] = useState('');
   const [isOnboardingDialogOpen, setIsOnboardingDialogOpen] = useState(false);
+
+  // Stripe webhook destination details
+  const stripeDestination = {
+    id: "we_1SnSwnBpNVQg8dwhkhzSG6tY",
+    name: "Learnzaa Payment Confirmation",
+    endpointUrl: "https://learnzaa.emtra.top/continue",
+    description: "The page is to confirm the user has checked out",
+    apiVersion: "2025-10-29.clover",
+    signingSecret: "whsec_ElFgLMbD9EorzIcKBAytP7GQEWIfs8us"
+  };
 
   const fetchData = async () => {
     if (!user) return;
@@ -149,10 +163,14 @@ const BillingPage: React.FC = () => {
 
       if (error) throw error;
 
-      // Update profile tier
+      // Update profile tier and payment status
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ tier: selectedPlan })
+        .update({
+          tier: selectedPlan,
+          is_paid_user: true,
+          max_daily_api_calls: 50 // Set max API calls for paid users
+        })
         .eq('id', user?.id);
 
       if (profileError) throw profileError;
@@ -212,7 +230,8 @@ const BillingPage: React.FC = () => {
             '5 learners max',
             'Limited lessons',
             'Basic progress tracking',
-            'Community support'
+            'Community support',
+            '2 API calls daily max'
           ],
           color: 'bg-gray-100',
           textColor: 'text-gray-700'
@@ -226,7 +245,8 @@ const BillingPage: React.FC = () => {
             'All lessons & content',
             'Advanced progress tracking',
             'Priority support',
-            '10% discount for 2+ learners'
+            '10% discount for 2+ learners',
+            '50 API calls daily max'
           ],
           color: 'bg-blue-100',
           textColor: 'text-blue-700'
@@ -288,6 +308,71 @@ const BillingPage: React.FC = () => {
               </Button>
             )}
           </div>
+
+          {/* Stripe Webhook Destination Info */}
+          {profile?.is_paid_user && (
+            <Card className="mb-6 border-2 border-green-100">
+              <CardHeader className="bg-green-50">
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="text-green-600" /> Stripe Webhook Destination
+                </CardTitle>
+                <CardDescription>Payment confirmation endpoint</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Destination ID</p>
+                      <p className="font-mono text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                        {stripeDestination.id}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
+                      <p className="font-medium">{stripeDestination.name}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Endpoint URL</p>
+                    <p className="font-mono text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded break-all">
+                      {stripeDestination.endpointUrl}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Description</p>
+                    <p className="text-sm">{stripeDestination.description}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">API Version</p>
+                      <p className="font-medium">{stripeDestination.apiVersion}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Signing Secret</p>
+                      <p className="font-mono text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded break-all">
+                        {stripeDestination.signingSecret}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <h3 className="font-semibold mb-2 flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                      <AlertTriangle className="text-blue-600 dark:text-blue-400" />
+                      Important Note
+                    </h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      This webhook endpoint confirms successful payments and updates user status to "paid" in our database.
+                      After payment is processed, the user's profile is updated with <strong>is_paid_user: true</strong> and
+                      <strong>max_daily_api_calls: 50</strong>.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="grid grid-cols-3 max-w-md">
@@ -412,6 +497,21 @@ const BillingPage: React.FC = () => {
                             {profile?.tier === 'premium' ? 'Unlimited' : `${learners.length}/5`}
                           </p>
                         </div>
+                      </div>
+
+                      {/* API Calls Limit Info */}
+                      <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
+                          <AlertTriangle className="text-yellow-600 dark:text-yellow-400" />
+                          API Calls Limit
+                        </h3>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                          Your current plan allows:
+                          <strong> {profile?.max_daily_api_calls || (profile?.tier === 'premium' ? 50 : 2)} API calls per day</strong>
+                        </p>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                          Today's usage: <strong>{profile?.daily_api_calls || 0}/{profile?.max_daily_api_calls || (profile?.tier === 'premium' ? 50 : 2)}</strong>
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -654,6 +754,7 @@ const BillingPage: React.FC = () => {
                     <li>Limited lessons</li>
                     <li>Basic progress tracking</li>
                     <li>Community support</li>
+                    <li>2 API calls daily max</li>
                   </ul>
                 </CardContent>
                 <CardFooter className="text-center">
@@ -685,6 +786,7 @@ const BillingPage: React.FC = () => {
                     <li>Advanced progress tracking</li>
                     <li>Priority support</li>
                     <li>10% discount for 2+ learners</li>
+                    <li>50 API calls daily max</li>
                   </ul>
                 </CardContent>
                 <CardFooter className="text-center">

@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, FileText, Image as ImageIcon, File as FilePdf, Loader2, Lightbulb, Copy, Check, AlertCircle, Files, X, Camera, GraduationCap } from 'lucide-react';
+import { Upload, FileText, Image as ImageIcon, File as FilePdf, Loader2, Lightbulb, Copy, Check, AlertTriangle, Files, X, Camera, GraduationCap, PartyPopper } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -33,11 +33,56 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
   const [challengeResponse, setChallengeResponse] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [apiCallLimitReached, setApiCallLimitReached] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const allowedFileTypes = ['image/jpeg', 'image/png', 'application/pdf', 'image/jpg'];
   const maxFileSize = 10 * 1024 * 1024; // 10MB
   const apiKey = "AIzaSyBSVH4sgrNFKRXjnDiCZAQM-HZv17HO3FQ";
+
+  const checkApiCallLimit = async () => {
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('tier, daily_api_calls, max_daily_api_calls')
+        .eq('id', learnerId)
+        .single();
+
+      if (profileError) {
+        console.error('Error checking API call limit:', profileError);
+        return true; // Allow if we can't check
+      }
+
+      const isPaidUser = profileData.tier === 'premium';
+      const currentCalls = profileData.daily_api_calls || 0;
+      const maxCalls = profileData.max_daily_api_calls || (isPaidUser ? 50 : 2);
+
+      if (currentCalls >= maxCalls) {
+        setApiCallLimitReached(true);
+        showError(`API call limit reached! ${isPaidUser ? 'Paid users' : 'Free users'} can make up to ${maxCalls} calls per day.`);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error checking API call limit:', error);
+      return true; // Allow if there's an error
+    }
+  };
+
+  const incrementApiCallCount = async () => {
+    try {
+      const { error } = await supabase.rpc('increment_api_call_count', {
+        user_id: learnerId
+      });
+
+      if (error) {
+        console.error('Error incrementing API call count:', error);
+      }
+    } catch (error) {
+      console.error('Error incrementing API call count:', error);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -140,25 +185,29 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
     }
   };
 
-  const handleAIHelperFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAIHelperFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      setError("");
-      setGuide("");
-      setChallengeResponse("");
+    if (files.length === 0) return;
 
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = (event.target?.result as string)?.split(',')[1];
-          setImages(prev => [
-            ...prev,
-            { id: Math.random().toString(36).substr(2, 9), url: event.target?.result as string, base64: base64 }
-          ]);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+    // Check API call limit before processing
+    const canProceed = await checkApiCallLimit();
+    if (!canProceed) return;
+
+    setError("");
+    setGuide("");
+    setChallengeResponse("");
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = (event.target?.result as string)?.split(',')[1];
+        setImages(prev => [
+          ...prev,
+          { id: Math.random().toString(36).substr(2, 9), url: event.target?.result as string, base64: base64 }
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -174,6 +223,10 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
 
   const getHomeworkHelp = async () => {
     if (images.length === 0) return;
+
+    // Check API call limit
+    const canProceed = await checkApiCallLimit();
+    if (!canProceed) return;
 
     setLoading(true);
     setError("");
@@ -204,10 +257,15 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
     };
 
     await callGemini(payload, setGuide, setLoading);
+    await incrementApiCallCount(); // Increment API call count after successful call
   };
 
   const revealChallenge = async () => {
     if (!guide) return;
+
+    // Check API call limit
+    const canProceed = await checkApiCallLimit();
+    if (!canProceed) return;
 
     setRevealing(true);
     setError("");
@@ -228,6 +286,7 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
     };
 
     await callGemini(payload, setChallengeResponse, setRevealing);
+    await incrementApiCallCount(); // Increment API call count after successful call
   };
 
   const callGemini = async (payload: any, onSuccess: (text: string) => void, setLoader: (loading: boolean) => void) => {
@@ -402,6 +461,15 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {apiCallLimitReached && (
+              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 mb-4">
+                <p className="text-sm text-yellow-700 flex items-center gap-2">
+                  <AlertTriangle className="text-yellow-600" />
+                  API call limit reached! Please upgrade to premium for more calls.
+                </p>
+              </div>
+            )}
+
             <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
               <input
                 type="file"
@@ -442,6 +510,7 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
                 onClick={() => setIsAIHelperOpen(true)}
                 variant="outline"
                 className="flex items-center gap-2"
+                disabled={apiCallLimitReached}
               >
                 <Lightbulb className="h-4 w-4" />
                 Get Help with Work
@@ -492,6 +561,15 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
           <ScrollArea className="h-[calc(90vh-120px)]">
             <div className="min-h-[500px] bg-[#f1f5f9] flex flex-col items-center py-8 px-4 font-sans text-slate-900">
               <div className="w-full max-w-3xl">
+                {apiCallLimitReached && (
+                  <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-700 flex items-center gap-2">
+                      <AlertTriangle className="text-yellow-600" />
+                      API call limit reached! Free users can make 2 calls/day, paid users 50 calls/day.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex flex-col items-center mb-10 text-center">
                   <div className="bg-blue-600 p-3 rounded-2xl shadow-lg shadow-blue-200 mb-4 text-white">
                     <GraduationCap size={32} />
@@ -512,18 +590,22 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
                       className="hidden"
                       accept="image/*"
                       multiple
+                      disabled={apiCallLimitReached}
                     />
 
                     {images.length === 0 ? (
                       <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex flex-col items-center cursor-pointer py-10"
+                        onClick={() => !apiCallLimitReached && fileInputRef.current?.click()}
+                        className={`flex flex-col items-center cursor-pointer py-10 ${apiCallLimitReached ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
                         <div className="bg-blue-600 p-4 rounded-full shadow-lg text-white mb-4 animate-pulse">
                           <Upload size={32} />
                         </div>
                         <p className="text-xl font-bold text-slate-700 text-center">Tap to upload photos</p>
                         <p className="text-sm text-slate-400 mt-1 font-medium">You can select multiple files at once</p>
+                        {apiCallLimitReached && (
+                          <p className="text-sm text-red-500 mt-2">API limit reached. Please upgrade to continue.</p>
+                        )}
                       </div>
                     ) : (
                       <div className="w-full">
@@ -544,8 +626,9 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
                             </div>
                           ))}
                           <button
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={() => !apiCallLimitReached && fileInputRef.current?.click()}
                             className="w-24 h-24 md:w-32 md:h-32 border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center text-blue-400 hover:bg-blue-50 transition-all"
+                            disabled={apiCallLimitReached}
                           >
                             <Upload size={24} />
                             <span className="text-xs font-bold mt-1">Add More</span>
@@ -561,7 +644,7 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
                           </button>
                           <button
                             onClick={getHomeworkHelp}
-                            disabled={loading || images.length === 0}
+                            disabled={loading || images.length === 0 || apiCallLimitReached}
                             className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center gap-2 shadow-lg shadow-blue-200 active:scale-95"
                           >
                             {loading ? <Loader2 className="animate-spin" size={18} /> : <Files size={18} />}
@@ -580,7 +663,7 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
                   )}
 
                   {error && (
-                    <div className="mx-8 mb-8 p-4 bg-red-50 border-2 border-red-100 rounded-2xl text-red-600 flex items-center gap-3"><AlertCircle size={24} /><p className="font-bold">{error}</p></div>
+                    <div className="mx-8 mb-8 p-4 bg-red-50 border-2 border-red-100 rounded-2xl text-red-600 flex items-center gap-3"><AlertTriangle size={24} /><p className="font-bold">{error}</p></div>
                   )}
 
                   {guide && !loading && (
@@ -601,7 +684,7 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
                       {!challengeResponse ? (
                         <button
                           onClick={revealChallenge}
-                          disabled={revealing}
+                          disabled={revealing || apiCallLimitReached}
                           className="w-full mt-4 p-6 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-100 relative overflow-hidden group hover:bg-blue-700 transition-all active:scale-[0.98]"
                         >
                           <div className="absolute top-0 right-0 p-4 opacity-20 transform group-hover:rotate-12 transition-transform">
@@ -614,6 +697,9 @@ const HomeworkUpload: React.FC<HomeworkUploadProps> = ({ learnerId, lessonId, on
                             <p className="text-blue-50 font-medium">
                               {revealing ? "Checking my notes..." : "I've left a tiny bit for you. Click here to check the final steps! 🚀"}
                             </p>
+                            {apiCallLimitReached && (
+                              <p className="text-red-500 text-sm mt-1">API limit reached. Please upgrade to continue.</p>
+                            )}
                           </div>
                         </button>
                       ) : (

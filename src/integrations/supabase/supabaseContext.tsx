@@ -27,12 +27,14 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
 
         if (event === 'SIGNED_IN') {
           showSuccess('Welcome back!');
-          navigate('/dashboard'); // Redirect to dashboard on sign-in
+          navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
+          // Clear session and user data
+          setSession(null);
+          setUser(null);
           showSuccess('You have been signed out.');
-          navigate('/'); // Redirect to home page on sign-out
+          navigate('/');
         } else if (event === 'INITIAL_SESSION' && !currentSession) {
-          // Don't redirect if no initial session, let user stay on current page
           setLoading(false);
         }
       }
