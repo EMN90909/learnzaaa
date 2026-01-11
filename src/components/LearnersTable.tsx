@@ -25,6 +25,18 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
+// Declare the Stripe buy button element type
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'stripe-buy-button': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        'buy-button-id': string;
+        'publishable-key': string;
+      };
+    }
+  }
+}
+
 interface Learner {
   id: string;
   org_id: string;
@@ -184,6 +196,18 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       setIsAddLearnerModalOpen(true);
     }
   };
+
+  // Load Stripe script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/buy-button.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -422,15 +446,12 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
                   </ul>
                 </CardContent>
                 <CardFooter className="text-center">
-                  <Button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => {
-                      showSuccess('Upgrade feature coming soon! Contact support to upgrade your account.');
-                      setShowUpgradeModal(false);
-                    }}
-                  >
-                    Upgrade Now
-                  </Button>
+                  <div id="stripe-buy-button-container">
+                    <stripe-buy-button
+                      buy-button-id="buy_btn_1SoB1qBpNVQg8dwhvgOJ3H5Z"
+                      publishable-key="pk_test_51SUQLlBpNVQg8dwh5nhv9iJVOQFa3MnZUsOqGZVF9CsgzUHG7QBp2jvIKDdS1mW8mh3Nq2zdjPacu4jyJyObX9L2008Lf5ovPK"
+                    />
+                  </div>
                 </CardFooter>
               </Card>
             </div>
