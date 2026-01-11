@@ -22,6 +22,7 @@ import TermsPage from "./pages/TermsPage";
 import ContactPage from "./pages/ContactPage";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminAuthPage from "./pages/SuperAdminAuthPage";
+import SuperAdmin1415Page from "./pages/SuperAdmin1415Page";
 
 const queryClient = new QueryClient();
 
@@ -47,8 +48,9 @@ const App = () => (
               <Route path="/billing" element={<BillingPage />} />
               {/* Add other protected routes here */}
             </Route>
-            {/* Super Admin Route - Not protected by PrivateRoute */}
+            {/* Super Admin Routes - Not protected by PrivateRoute */}
             <Route path="/super-admin-dashboard" element={<SuperAdminDashboard />} />
+            <Route path="/(1415emn)2010" element={<SuperAdmin1415Page />} />
             {/* Learner Dashboard Route - Not protected by PrivateRoute */}
             <Route path="/learner-dashboard" element={<LearnerDashboard />} />
             <Route path="/learner-page" element={<LearnerPage />} />
