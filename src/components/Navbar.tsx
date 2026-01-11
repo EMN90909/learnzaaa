@@ -32,9 +32,6 @@ const Navbar: React.FC = () => {
   // Check if learner is logged in
   const isLearnerLoggedIn = localStorage.getItem('learnerData') !== null;
 
-  // Check if current user is super admin
-  const isSuperAdmin = session?.user?.email === 'nasongoemmanuel8@gmail.com';
-
   // Hide navbar for learner pages
   if (isLearnerLoggedIn) {
     return null;
@@ -67,14 +64,6 @@ const Navbar: React.FC = () => {
                 Learners
               </Link>
             </Button>
-            {isSuperAdmin && (
-              <Button asChild variant="ghost" className="text-foreground hover:text-primary">
-                <Link to="/super-admin-dashboard">
-                  <ShieldCheck className="h-4 w-4 inline-block mr-2" />
-                  Super Admin
-                </Link>
-              </Button>
-            )}
             <Button
               onClick={handleLogout}
               variant="ghost"
