@@ -791,7 +791,7 @@ const LearnerPage: React.FC = () => {
             0% {
               left: 200%;
             }
-            100% {
+              100% {
               left: -100%;
               opacity: 0;
             }
@@ -1557,10 +1557,10 @@ const LearnerPage: React.FC = () => {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lightbulb className="text-yellow-500" /> Quiz Question
-            </DialogTitle>
-            <DialogDescription>Answer the question to earn points! 💎</DialogDescription>
+            <DialogTitle>Quiz Question</DialogTitle>
+            <DialogDescription>
+              Answer the question to earn points! 💎
+            </DialogDescription>
           </DialogHeader>
           {selectedQuiz && (
             <div className="space-y-6">
@@ -1641,9 +1641,9 @@ const LearnerPage: React.FC = () => {
                 </CardHeader>
                 <CardContent className="text-center">
                   <ul className="list-disc list-inside space-y-2 text-sm text-left">
+                    <li>1 learner max</li>
                     <li>Limited lessons</li>
-                    <li>Basic features</li>
-                    <li>Ads included</li>
+                    <li>Basic progress tracking</li>
                     <li>Community support</li>
                   </ul>
                 </CardContent>
@@ -1655,17 +1655,18 @@ const LearnerPage: React.FC = () => {
               </Card>
 
               {/* Premium Plan */}
-              <Card className="border-2 border-green-500">
+              <Card className="border-2 border-green-200">
                 <CardHeader className="text-center">
                   <CardTitle className="text-lg">Premium Plan</CardTitle>
-                  <CardDescription>Ksh 1,071.73/month</CardDescription>
+                  <CardDescription>Ksh 1,071.73/month per learner</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <ul className="list-disc list-inside space-y-2 text-sm text-left">
-                    <li>All lessons unlocked</li>
-                    <li>No ads</li>
+                    <li>Unlimited learners</li>
+                    <li>All lessons & content</li>
+                    <li>Advanced progress tracking</li>
                     <li>Priority support</li>
-                    <li>Advanced features</li>
+                    <li>10% discount for 2+ learners</li>
                   </ul>
                 </CardContent>
                 <CardFooter className="text-center">
