@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Loader2, CalendarIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, CalendarIcon, Crown, Star, CheckCircle, Lock, Unlock } from 'lucide-react';
 import AddLearnerForm from './AddLearnerForm';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Declare the Stripe buy button element type
 declare global {
@@ -46,6 +47,14 @@ interface Learner {
   dob: string;
   grade: string;
   created_at: string;
+  is_premium?: boolean;
+}
+
+interface Organization {
+  id: string;
+  tier: string;
+  stripe_customer_id?: string;
+  subscription_status?: string;
 }
 
 interface LearnersTableProps {
@@ -60,32 +69,28 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
   const [editingLearner, setEditingLearner] = useState<Learner | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLearner, setSelectedLearner] = useState<Learner | null>(null);
-  const [organizationTier, setOrganizationTier] = useState<string>('free');
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('learners');
 
   const fetchLearners = async () => {
     setLoading(true);
     try {
-      // Fetch organization tier - handle case where tier column might not exist
-      try {
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('*')
-          .eq('id', orgId)
-          .single();
+      // Fetch organization data
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', orgId)
+        .single();
 
-        if (orgError) {
-          // If there's an error, assume free tier
-          setOrganizationTier('free');
-        } else {
-          // Check if tier exists, otherwise default to free
-          setOrganizationTier(orgData?.tier || 'free');
-        }
-      } catch (orgError) {
-        console.warn('Could not fetch organization tier, defaulting to free:', orgError);
-        setOrganizationTier('free');
+      if (orgError) {
+        console.warn('Could not fetch organization data:', orgError);
+        setOrganization({ id: orgId, tier: 'free' });
+      } else {
+        setOrganization(orgData);
       }
 
+      // Fetch learners
       const { data, error } = await supabase
         .from('learners')
         .select('*')
@@ -190,8 +195,10 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
   );
 
   const handleAddLearnerClick = () => {
-    if (organizationTier === 'free' && learners.length >= 1) {
+    if (organization?.tier === 'free' && learners.length >= 1) {
       setShowUpgradeModal(true);
+    } else if (organization?.tier === 'premium' && learners.length >= 5) {
+      showError('You have reached the maximum of 5 learners for the premium plan.');
     } else {
       setIsAddLearnerModalOpen(true);
     }
@@ -209,6 +216,32 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
     };
   }, []);
 
+  const getPlanFeatures = (tier: string) => {
+    switch (tier) {
+      case 'premium':
+        return [
+          'Up to 5 learners',
+          'All lessons & content',
+          'Advanced progress tracking',
+          'Priority support',
+          'Premium badges for learners',
+          'No ads'
+        ];
+      case 'free':
+      default:
+        return [
+          '1 learner max',
+          'Limited lessons',
+          'Basic progress tracking',
+          'Community support'
+        ];
+    }
+  };
+
+  const getPlanLimit = (tier: string) => {
+    return tier === 'premium' ? 5 : 1;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -222,9 +255,14 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <div className="flex items-center gap-4 w-full md:w-auto">
           <h2 className="text-2xl font-bold">Your Learners</h2>
-          <Badge variant="secondary" className="text-sm">
-            {learners.length} total learners
+          <Badge variant={organization?.tier === 'premium' ? 'default' : 'secondary'} className="text-sm">
+            {learners.length} / {getPlanLimit(organization?.tier || 'free')} learners
           </Badge>
+          {organization?.tier === 'premium' && (
+            <Badge variant="default" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+              <Crown className="h-3 w-3 mr-1" /> Premium
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
           <Input
@@ -247,55 +285,84 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
                   Fill in the details below to add a new learner to your organization.
                 </DialogDescription>
               </DialogHeader>
-              <AddLearnerForm orgId={orgId} onLearnerAdded={handleLearnerAdded} onClose={() => setIsAddLearnerModalOpen(false)} />
+              <AddLearnerForm
+                orgId={orgId}
+                onLearnerAdded={handleLearnerAdded}
+                onClose={() => setIsAddLearnerModalOpen(false)}
+              />
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      {/* Ads for Free Accounts */}
-      {organizationTier === 'free' && (
-        <Card className="border-yellow-200 bg-yellow-50 mb-4">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-              <span className="text-yellow-600 font-bold">💡</span>
+      {/* Plan Info Card */}
+      <Card className={cn(
+        "mb-4",
+        organization?.tier === 'premium' ? "border-yellow-200 bg-yellow-50" : "border-blue-200 bg-blue-50"
+      )}>
+        <CardHeader className="flex flex-row items-center gap-4">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center"
+               style={{
+                 background: organization?.tier === 'premium'
+                   ? 'linear-gradient(135deg, #fbbf24, #f59e0b)'
+                   : 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+               }}>
+            {organization?.tier === 'premium' ? (
+              <Crown className="h-6 w-6 text-yellow-800" />
+            ) : (
+              <Star className="h-6 w-6 text-blue-800" />
+            )}
+          </div>
+          <div>
+            <CardTitle>{organization?.tier === 'premium' ? 'Premium Plan' : 'Free Plan'}</CardTitle>
+            <CardDescription>
+              {organization?.tier === 'premium' ? 'Enjoy all premium features!' : 'Upgrade to unlock more features'}
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold flex items-center gap-2">
+                {organization?.tier === 'premium' ? (
+                  <>
+                    <Unlock className="text-green-600" /> All Features Unlocked
+                  </>
+                ) : (
+                  <>
+                    <Lock className="text-blue-600" /> Current Features
+                  </>
+                )}
+              </h4>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                {getPlanFeatures(organization?.tier || 'free').map((feature, index) => (
+                  <li key={index}>{feature}</li>
+                ))}
+              </ul>
             </div>
-            <div>
-              <CardTitle>Upgrade to Premium</CardTitle>
-              <CardDescription>Unlock all features and remove ads for only Ksh 1,071.73/month</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {organization?.tier === 'free' && (
               <div className="space-y-2">
-                <h4 className="font-semibold">Free Plan Features:</h4>
+                <h4 className="font-semibold flex items-center gap-2">
+                  <Star className="text-yellow-600" /> Premium Features
+                </h4>
                 <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>1 learner max</li>
-                  <li>Limited lessons</li>
-                  <li>Basic progress tracking</li>
-                  <li>Community support</li>
+                  {getPlanFeatures('premium').map((feature, index) => (
+                    <li key={index} className="text-yellow-700">{feature}</li>
+                  ))}
                 </ul>
               </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold">Premium Plan Features:</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>Unlimited learners</li>
-                  <li>All lessons & content</li>
-                  <li>Advanced progress tracking</li>
-                  <li>Priority support</li>
-                  <li>No ads</li>
-                </ul>
-              </div>
-            </div>
+            )}
+          </div>
+          {organization?.tier === 'free' && (
             <Button
-              className="mt-4 bg-green-600 hover:bg-green-700 text-white"
+              className="mt-4 w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               onClick={() => setShowUpgradeModal(true)}
             >
-              Upgrade Now
+              <Crown className="mr-2 h-4 w-4" /> Upgrade to Premium
             </Button>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       {learners.length === 0 ? (
         <Card className="text-center p-8">
@@ -308,50 +375,110 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
           </CardContent>
         </Card>
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Date of Birth</TableHead>
-                <TableHead>Class/Grade</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLearners.map((learner) => (
-                <TableRow
-                  key={learner.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
-                  onClick={() => setSelectedLearner(learner)}
-                >
-                  <TableCell className="font-medium">{learner.name}</TableCell>
-                  <TableCell>{learner.username}</TableCell>
-                  <TableCell>{format(new Date(learner.dob), 'PPP')}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{learner.grade}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleEditClick(learner)}} className="mr-2">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleDeleteLearner(learner.id)}}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid grid-cols-2 max-w-md">
+            <TabsTrigger value="learners">Learners List</TabsTrigger>
+            <TabsTrigger value="stats">Statistics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="learners">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Grade</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLearners.map((learner) => (
+                    <TableRow
+                      key={learner.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
+                      onClick={() => setSelectedLearner(learner)}
+                    >
+                      <TableCell className="font-medium flex items-center gap-2">
+                        {learner.name}
+                        {organization?.tier === 'premium' && (
+                          <Crown className="h-4 w-4 text-yellow-500" />
+                        )}
+                      </TableCell>
+                      <TableCell>{learner.username}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{learner.grade}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={organization?.tier === 'premium' ? 'default' : 'secondary'}>
+                          {organization?.tier === 'premium' ? 'Premium' : 'Free'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleEditClick(learner)}} className="mr-2">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleDeleteLearner(learner.id)}}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <Card>
+              <CardHeader>
+                <CardTitle>Learner Statistics</CardTitle>
+                <CardDescription>Overview of your learners' progress</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-white rounded-lg border">
+                    <p className="text-sm text-gray-500">Total Learners</p>
+                    <p className="text-2xl font-bold text-blue-600">{learners.length}</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg border">
+                    <p className="text-sm text-gray-500">Plan Limit</p>
+                    <p className="text-2xl font-bold text-green-600">{getPlanLimit(organization?.tier || 'free')}</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg border">
+                    <p className="text-sm text-gray-500">Available Slots</p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {Math.max(0, getPlanLimit(organization?.tier || 'free') - learners.length)}
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg border">
+                    <p className="text-sm text-gray-500">Plan Status</p>
+                    <p className="text-2xl font-bold">
+                      {organization?.tier === 'premium' ? (
+                        <span className="text-yellow-600">Premium ✨</span>
+                      ) : (
+                        <span className="text-blue-600">Free</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
 
       {selectedLearner && (
         <Dialog open={!!selectedLearner} onOpenChange={() => setSelectedLearner(null)}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{selectedLearner.name}</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                {selectedLearner.name}
+                {organization?.tier === 'premium' && (
+                  <Crown className="h-5 w-5 text-yellow-500" />
+                )}
+              </DialogTitle>
               <DialogDescription>Learner Details</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -372,6 +499,12 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
               <div>
                 <p className="text-sm text-muted-foreground">Joined</p>
                 <p className="font-medium">{new Date(selectedLearner.created_at).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Status</p>
+                <Badge variant={organization?.tier === 'premium' ? 'default' : 'secondary'}>
+                  {organization?.tier === 'premium' ? 'Premium Learner' : 'Free Learner'}
+                </Badge>
               </div>
             </div>
           </DialogContent>
@@ -400,15 +533,15 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Upgrade Required</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="text-yellow-500" /> Upgrade to Premium
+            </DialogTitle>
             <DialogDescription>
-              {organizationTier === 'free' && learners.length >= 1
-                ? 'You have reached the maximum of 1 learner for the free plan.'
-                : 'Upgrade to premium to unlock more features.'}
+              Unlock all features for only Ksh 1,071.73/month
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Free Plan */}
               <Card className="border-2 border-gray-200">
                 <CardHeader className="text-center">
@@ -417,10 +550,9 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
                 </CardHeader>
                 <CardContent className="text-center">
                   <ul className="list-disc list-inside space-y-2 text-sm text-left">
-                    <li>1 learner max</li>
-                    <li>Limited lessons</li>
-                    <li>Basic progress tracking</li>
-                    <li>Community support</li>
+                    {getPlanFeatures('free').map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
                   </ul>
                 </CardContent>
                 <CardFooter className="text-center">
@@ -431,22 +563,22 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
               </Card>
 
               {/* Premium Plan */}
-              <Card className="border-2 border-green-200">
+              <Card className="border-2 border-yellow-200 bg-yellow-50">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-lg">Premium Plan</CardTitle>
-                  <CardDescription>Ksh 1,071.73/month per learner</CardDescription>
+                  <CardTitle className="text-lg flex items-center justify-center gap-2">
+                    <Crown className="text-yellow-600" /> Premium Plan
+                  </CardTitle>
+                  <CardDescription>Ksh 1,071.73/month</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <ul className="list-disc list-inside space-y-2 text-sm text-left">
-                    <li>Unlimited learners</li>
-                    <li>All lessons & content</li>
-                    <li>Advanced progress tracking</li>
-                    <li>Priority support</li>
-                    <li>10% discount for 2+ learners</li>
+                    {getPlanFeatures('premium').map((feature, index) => (
+                      <li key={index} className="text-yellow-700">{feature}</li>
+                    ))}
                   </ul>
                 </CardContent>
                 <CardFooter className="text-center">
-                  <div id="stripe-buy-button-container">
+                  <div className="stripe-buy-button-container w-full">
                     <stripe-buy-button
                       buy-button-id="buy_btn_1SoB1qBpNVQg8dwhvgOJ3H5Z"
                       publishable-key="pk_test_51SUQLlBpNVQg8dwh5nhv9iJVOQFa3MnZUsOqGZVF9CsgzUHG7QBp2jvIKDdS1mW8mh3Nq2zdjPacu4jyJyObX9L2008Lf5ovPK"
@@ -458,12 +590,33 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
 
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-700">
-                <strong>Note:</strong> Contact support@learnzaa.com to upgrade your account to premium.
+                <strong>Note:</strong> Contact support@learnzaa.com if you have any questions about upgrading.
               </p>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add CSS for mobile-friendly Stripe button */}
+      <style>
+        {`
+          .stripe-buy-button-container {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+          }
+
+          @media (max-width: 768px) {
+            .stripe-buy-button-container {
+              max-width: 100%;
+            }
+
+            stripe-buy-button {
+              width: 100% !important;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
