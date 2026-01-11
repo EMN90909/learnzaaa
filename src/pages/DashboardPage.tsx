@@ -61,7 +61,8 @@ const DashboardPage: React.FC = () => {
         .from('organizations')
         .insert({
           name: orgName,
-          owner_id: userId
+          owner_id: userId,
+          tier: 'free'
         })
         .select()
         .single();

@@ -50,6 +50,33 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // First check if the organization exists
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('id', orgId)
+        .single();
+
+      // If organization doesn't exist, create it
+      if (orgError && orgError.code === 'PGRST116') {
+        const { data: newOrg, error: createOrgError } = await supabase
+          .from('organizations')
+          .insert({
+            id: orgId,
+            name: `Organization for ${orgId}`,
+            tier: 'free'
+          })
+          .select()
+          .single();
+
+        if (createOrgError) {
+          throw createOrgError;
+        }
+        showSuccess('Organization created successfully!');
+      } else if (orgError) {
+        throw orgError;
+      }
+
       // Check if username already exists
       const { data: existingLearner, error: checkError } = await supabase
         .from('learners')
