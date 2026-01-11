@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, BookOpen, Star, Award, Upload, LogOut, Menu, CheckCircle, Lightbulb, PartyPopper, Copy, Check, AlertCircle, Files, X, GraduationCap } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import HomeworkUpload from '@/components/HomeworkUpload';
 import { File as FilePdf, Image as ImageIcon, FileText } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Learner {
   id: string;
@@ -106,7 +107,9 @@ const LearnerPage: React.FC = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Calculate age group based on DOB
   const calculateAgeGroup = (dob: string): 'young' | 'middle' | 'older' => {
@@ -969,7 +972,7 @@ const LearnerPage: React.FC = () => {
               </div>
               <Button
                 className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                onClick={() => showSuccess('Contact your parent/guardian to upgrade your account!')}
+                onClick={() => setShowUpgradeModal(true)}
               >
                 Upgrade Now
               </Button>
@@ -1016,7 +1019,7 @@ const LearnerPage: React.FC = () => {
                       <CardContent className="mt-4">
                         <div className="prose dark:prose-invert max-w-none">
                           {/* Render markdown content using MarkdownRenderer */}
-                          <MarkdownRenderer content={currentLesson.md_content} ageGroup={ageGroup} />
+                          <MarkdownRenderer content={currentLesson.md_content} ageGroup={ageGroup} learnerId={learner.id} />
 
                           {/* Homework Upload Section */}
                           <div className="mt-8">
@@ -1616,6 +1619,75 @@ const LearnerPage: React.FC = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Upgrade to Premium</DialogTitle>
+            <DialogDescription>
+              Unlock all lessons and remove ads for only Ksh 1,071.73/month
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Free Plan */}
+              <Card className="border-2 border-gray-200">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-lg">Free Plan</CardTitle>
+                  <CardDescription>Ksh 0/month</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <ul className="list-disc list-inside space-y-2 text-sm text-left">
+                    <li>Limited lessons</li>
+                    <li>Basic features</li>
+                    <li>Ads included</li>
+                    <li>Community support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="text-center">
+                  <Badge variant="default" className="bg-gray-100 text-gray-800">
+                    Current Plan
+                  </Badge>
+                </CardFooter>
+              </Card>
+
+              {/* Premium Plan */}
+              <Card className="border-2 border-green-500">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-lg">Premium Plan</CardTitle>
+                  <CardDescription>Ksh 1,071.73/month</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <ul className="list-disc list-inside space-y-2 text-sm text-left">
+                    <li>All lessons unlocked</li>
+                    <li>No ads</li>
+                    <li>Priority support</li>
+                    <li>Advanced features</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="text-center">
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => {
+                      showSuccess('Upgrade feature coming soon! Contact your parent/guardian to upgrade your account.');
+                      setShowUpgradeModal(false);
+                    }}
+                  >
+                    Upgrade Now
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700">
+                <strong>Note:</strong> Ask your parent/guardian to upgrade your account through the admin dashboard.
+              </p>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

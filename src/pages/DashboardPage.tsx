@@ -9,7 +9,9 @@ import LearnersTable from '@/components/LearnersTable';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut } from 'lucide-react';
+import { LogOut, Settings, User } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface Profile {
   id: string;
@@ -24,6 +26,7 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [creatingOrg, setCreatingOrg] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const isMobile = useIsMobile();
 
   const fetchProfile = async () => {
     if (user) {
@@ -133,7 +136,7 @@ const DashboardPage: React.FC = () => {
         <div className="container mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Welcome, {profile.display_name || profile.email}!
+              Welcome, {profile.display_name || 'Admin'}!
             </h1>
             <div className="relative">
               <Avatar
@@ -142,15 +145,29 @@ const DashboardPage: React.FC = () => {
               >
                 <AvatarImage src={user?.user_metadata?.avatar_url || undefined} />
                 <AvatarFallback className="bg-blue-600 text-white">
-                  {profile.display_name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase() || 'U'}
+                  {profile.display_name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+                <div className={cn(
+                  "absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50",
+                  isMobile ? "bottom-12" : "top-full"
+                )}>
                   <div className="p-4 border-b">
-                    <p className="font-semibold">{profile.display_name || profile.email}</p>
+                    <p className="font-semibold">{profile.display_name}</p>
                     <p className="text-sm text-gray-500">Admin</p>
                   </div>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-gray-700 hover:text-gray-900"
+                    onClick={() => {
+                      showSuccess('Settings feature coming soon!');
+                      setShowProfileMenu(false);
+                    }}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Button>
                   <Button
                     onClick={handleLogout}
                     className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"

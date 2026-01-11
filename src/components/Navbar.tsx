@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Home, BookOpen, User, GraduationCap } from 'lucide-react';
+import { LogOut, Home, BookOpen, User, GraduationCap, Menu } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar: React.FC = () => {
   const { session, loading } = useSession();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -61,10 +63,6 @@ const Navbar: React.FC = () => {
                 <User className="h-4 w-4 inline-block mr-2" />
                 Learners
               </Link>
-            </Button>
-            <Button variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-600">
-              <LogOut className="h-4 w-4 inline-block mr-2" />
-              Logout
             </Button>
           </>
         ) : (
