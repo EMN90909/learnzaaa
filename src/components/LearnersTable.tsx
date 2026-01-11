@@ -69,15 +69,25 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
 
       setLearners(data || []);
 
-      // Fetch organization tier
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .select('tier')
-        .eq('id', orgId)
-        .single();
+      // Fetch organization tier - handle case where tier column might not exist
+      try {
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', orgId)
+          .single();
 
-      if (orgError) throw orgError;
-      setOrganizationTier(orgData?.tier || 'free');
+        if (orgError) {
+          // If there's an error, assume free tier
+          setOrganizationTier('free');
+        } else {
+          // Check if tier exists, otherwise default to free
+          setOrganizationTier(orgData?.tier || 'free');
+        }
+      } catch (orgError) {
+        console.warn('Could not fetch organization tier, defaulting to free:', orgError);
+        setOrganizationTier('free');
+      }
 
     } catch (error: any) {
       showError('Failed to fetch learners: ' + error.message);
