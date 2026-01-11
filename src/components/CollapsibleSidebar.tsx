@@ -27,11 +27,18 @@ const CollapsibleSidebar: React.FC = () => {
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+        // Don't show error to user, just redirect
+      }
+      // Redirect to home page after logout
+      window.location.href = '/';
+    } catch (error) {
       console.error('Logout error:', error);
-    } else {
-      showSuccess('Logged out successfully!');
+      // Redirect to home page even if there's an error
+      window.location.href = '/';
     }
   };
 
