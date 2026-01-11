@@ -42,7 +42,7 @@ const DashboardPage: React.FC = () => {
         console.error('Error fetching profile:', error);
       } else {
         setProfile(data);
-        // Only show success message if this is the first load
+        // Only create organization if it doesn't exist
         if (!data.org_id) {
           await createOrganization(data.id, data.display_name || data.email);
         }
@@ -56,10 +56,10 @@ const DashboardPage: React.FC = () => {
     try {
       const orgName = `${userName}'s Organization`;
 
-      // Create organization - handle case where tier column might not exist
+      // First, create the organization
       let orgPayload: any = {
+        id: userId, // Use user ID as organization ID
         name: orgName,
-        owner_id: userId,
       };
 
       // Try to create with tier first
@@ -107,10 +107,10 @@ const DashboardPage: React.FC = () => {
         }
       }
 
-      // Update profile with org_id
+      // Now update the profile with the organization ID
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ org_id: userId }) // Using userId as org_id for now
+        .update({ org_id: userId })
         .eq('id', userId);
 
       if (profileError) {
@@ -118,9 +118,9 @@ const DashboardPage: React.FC = () => {
       }
 
       setProfile(prev => prev ? { ...prev, org_id: userId } : null);
-      showSuccess('Organization created successfully!');
+      showSuccess('Organization created and profile updated successfully!');
     } catch (error: any) {
-      showError('Failed to create organization');
+      showError('Failed to create organization: ' + error.message);
       console.error('Error creating organization:', error);
     } finally {
       setCreatingOrg(false);
