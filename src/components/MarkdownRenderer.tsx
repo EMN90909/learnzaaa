@@ -4,13 +4,19 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
+import { useSession } from '@/integrations/supabase/supabaseContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MarkdownRendererProps {
   content: string;
   ageGroup?: 'young' | 'middle' | 'older';
+  learnerId?: string;
 }
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup = 'middle' }) => {
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup = 'middle', learnerId }) => {
+  const [organizationTier, setOrganizationTier] = React.useState<string>('free');
+  const [loading, setLoading] = React.useState(true);
+
   // Get age group specific styles
   const getAgeGroupStyles = () => {
     switch (ageGroup) {
@@ -51,6 +57,48 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup =
   };
 
   const styles = getAgeGroupStyles();
+
+  // Fetch organization tier if learnerId is provided
+  React.useEffect(() => {
+    const fetchOrganizationTier = async () => {
+      if (!learnerId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // First get learner data to find org_id
+        const { data: learnerData, error: learnerError } = await supabase
+          .from('learners')
+          .select('org_id')
+          .eq('id', learnerId)
+          .single();
+
+        if (learnerError) throw learnerError;
+
+        // Then get organization tier
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('tier')
+          .eq('id', learnerData.org_id)
+          .single();
+
+        if (orgError) throw orgError;
+
+        setOrganizationTier(orgData?.tier || 'free');
+      } catch (error) {
+        console.error('Error fetching organization tier:', error);
+        setOrganizationTier('free');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrganizationTier();
+  }, [learnerId]);
+
+  // Show ads for free accounts
+  const showAds = organizationTier === 'free' && !loading;
 
   return (
     <div className={cn(
@@ -123,6 +171,24 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup =
       >
         {content}
       </ReactMarkdown>
+
+      {/* Ads for free accounts */}
+      {showAds && (
+        <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+              <span className="text-yellow-600 font-bold">💡</span>
+            </div>
+            <h4 className="font-semibold text-yellow-800">Upgrade to Premium</h4>
+          </div>
+          <p className="text-sm text-yellow-700 mb-3">
+            Unlock all lessons, remove ads, and get premium features for only Ksh 1,071.73/month.
+          </p>
+          <p className="text-xs text-yellow-600">
+            Ask your parent/guardian to upgrade your account to access all content without ads!
+          </p>
+        </div>
+      )}
     </div>
   );
 };

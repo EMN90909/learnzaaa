@@ -181,9 +181,10 @@ const BillingPage: React.FC = () => {
       case 'free':
         return {
           name: 'Free Plan',
-          price: '$0/month',
+          price: 'Ksh 0',
+          description: 'Perfect for trying out Learnzaa',
           features: [
-            '1 learner max',
+            '5 learners max',
             'Limited lessons',
             'Basic progress tracking',
             'Community support'
@@ -194,7 +195,8 @@ const BillingPage: React.FC = () => {
       case 'premium':
         return {
           name: 'Premium Plan',
-          price: '$12/month per learner',
+          price: 'Ksh 1,071.73/month per learner',
+          description: 'Full access for serious learners',
           features: [
             'Unlimited learners',
             'All lessons & content',
@@ -639,7 +641,7 @@ const BillingPage: React.FC = () => {
               )}>
                 <CardHeader className="text-center">
                   <CardTitle className="text-lg">Free Plan</CardTitle>
-                  <CardDescription>$0/month</CardDescription>
+                  <CardDescription>Ksh 0/month</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <ul className="list-disc list-inside space-y-2 text-sm text-left">
@@ -669,7 +671,7 @@ const BillingPage: React.FC = () => {
               )}>
                 <CardHeader className="text-center">
                   <CardTitle className="text-lg">Premium Plan</CardTitle>
-                  <CardDescription>$12/month per learner</CardDescription>
+                  <CardDescription>Ksh 1,071.73/month per learner</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <ul className="list-disc list-inside space-y-2 text-sm text-left">

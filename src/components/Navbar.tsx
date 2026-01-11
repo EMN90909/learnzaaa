@@ -27,6 +27,14 @@ const Navbar: React.FC = () => {
     }
   };
 
+  // Check if learner is logged in
+  const isLearnerLoggedIn = localStorage.getItem('learnerData') !== null;
+
+  // Hide navbar for learner pages
+  if (isLearnerLoggedIn) {
+    return null;
+  }
+
   if (loading) {
     return null;
   }

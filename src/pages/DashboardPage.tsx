@@ -8,6 +8,8 @@ import CollapsibleSidebar from '@/components/CollapsibleSidebar';
 import LearnersTable from '@/components/LearnersTable';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LogOut } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -21,6 +23,7 @@ const DashboardPage: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [creatingOrg, setCreatingOrg] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const fetchProfile = async () => {
     if (user) {
@@ -84,6 +87,15 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      showError(error.message);
+    } else {
+      showSuccess('Logged out successfully!');
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
   }, [user]);
@@ -123,40 +135,52 @@ const DashboardPage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               Welcome, {profile.display_name || profile.email}!
             </h1>
-            {!profile.org_id && (
-              <Button onClick={() => createOrganization(user?.id || '', profile.display_name || profile.email)} disabled={creatingOrg}>
-                <Plus className="h-4 w-4 mr-2" />
-                {creatingOrg ? 'Creating...' : 'Create Organization'}
-              </Button>
-            )}
+            <div className="relative">
+              <Avatar
+                className="h-10 w-10 cursor-pointer"
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+              >
+                <AvatarImage src={user?.user_metadata?.avatar_url || undefined} />
+                <AvatarFallback className="bg-blue-600 text-white">
+                  {profile.display_name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+                  <div className="p-4 border-b">
+                    <p className="font-semibold">{profile.display_name || profile.email}</p>
+                    <p className="text-sm text-gray-500">Admin</p>
+                  </div>
+                  <Button
+                    onClick={handleLogout}
+                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                    variant="ghost"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <Card className="border-none shadow-lg">
               <CardHeader>
-                <CardTitle>Email</CardTitle>
+                <CardTitle>Welcome</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg text-gray-700 dark:text-gray-300">{profile.email}</p>
+                <p className="text-lg text-gray-700 dark:text-gray-300">
+                  Hello, {profile.display_name || 'Admin'}! You're ready to manage your learners.
+                </p>
               </CardContent>
             </Card>
-            {profile.org_id && (
-              <Card className="border-none shadow-lg">
-                <CardHeader>
-                  <CardTitle>Organization ID</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg text-gray-700 dark:text-gray-300 font-mono">{profile.org_id}</p>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {profile.org_id ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Your Learners</h2>
-                {/* Removed the duplicate Add Learner button from here */}
               </div>
               <LearnersTable orgId={profile.org_id} />
             </div>

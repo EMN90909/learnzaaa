@@ -23,7 +23,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface Learner {
   id: string;
@@ -48,6 +48,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
   const [editingLearner, setEditingLearner] = useState<Learner | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLearner, setSelectedLearner] = useState<Learner | null>(null);
+  const [organizationTier, setOrganizationTier] = useState<string>('free');
 
   const fetchLearners = async () => {
     setLoading(true);
@@ -67,6 +68,17 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
       }
 
       setLearners(data || []);
+
+      // Fetch organization tier
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('tier')
+        .eq('id', orgId)
+        .single();
+
+      if (orgError) throw orgError;
+      setOrganizationTier(orgData?.tier || 'free');
+
     } catch (error: any) {
       showError('Failed to fetch learners: ' + error.message);
       console.error('Error fetching learners:', error);
@@ -198,6 +210,49 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
           </Dialog>
         </div>
       </div>
+
+      {/* Ads for Free Accounts */}
+      {organizationTier === 'free' && (
+        <Card className="border-yellow-200 bg-yellow-50 mb-4">
+          <CardHeader className="flex flex-row items-center gap-4">
+            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+              <span className="text-yellow-600 font-bold">💡</span>
+            </div>
+            <div>
+              <CardTitle>Upgrade to Premium</CardTitle>
+              <CardDescription>Unlock all features and remove ads for only Ksh 1,071.73/month</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <h4 className="font-semibold">Free Plan Features:</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Limited lessons</li>
+                  <li>Basic progress tracking</li>
+                  <li>Community support</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold">Premium Plan Features:</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Unlimited learners</li>
+                  <li>All lessons & content</li>
+                  <li>Advanced progress tracking</li>
+                  <li>Priority support</li>
+                  <li>No ads</li>
+                </ul>
+              </div>
+            </div>
+            <Button
+              className="mt-4 bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => showSuccess('Redirecting to billing page...')}
+            >
+              <Link to="/billing">Upgrade Now</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {learners.length === 0 ? (
         <Card className="text-center p-8">
