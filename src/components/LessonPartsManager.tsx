@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Save, Image as ImageIcon, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, Image as ImageIcon, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 
