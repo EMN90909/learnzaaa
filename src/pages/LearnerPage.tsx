@@ -20,6 +20,9 @@ import MarkdownRenderer from '@/components/MarkdownRenderer';
 import HomeworkUpload from '@/components/HomeworkUpload';
 import { File as FilePdf, Image as ImageIcon, FileText } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import ResultsSummary from '@/components/ResultsSummary';
+import Leaderboard from '@/components/Leaderboard';
+import MonthlyWinnerCard from '@/components/MonthlyWinnerCard';
 
 interface Learner {
   id: string;
@@ -108,6 +111,14 @@ const LearnerPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showResultsSummary, setShowResultsSummary] = useState(false);
+  const [resultsSummaryData, setResultsSummaryData] = useState<{
+    lessonId?: string;
+    quizId?: string;
+    score: number;
+    totalPoints: number;
+    taskType: 'lesson' | 'quiz' | 'homework';
+  } | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -337,11 +348,24 @@ const LearnerPage: React.FC = () => {
         return;
       }
 
+      // Calculate score (for lessons, we'll assume full score for completion)
+      const score = 100;
+      const totalPoints = 100;
+
+      // Show results summary
+      setResultsSummaryData({
+        lessonId: currentLesson.id,
+        score,
+        totalPoints,
+        taskType: 'lesson'
+      });
+      setShowResultsSummary(true);
+
       // Update or create progress
       const { data, error } = existingProgress
         ? await supabase
             .from('progress')
-            .update({ completed: true, updated_at: new Date().toISOString() })
+            .update({ completed: true, score, updated_at: new Date().toISOString() })
             .eq('id', existingProgress.id)
             .select()
         : await supabase
@@ -350,7 +374,7 @@ const LearnerPage: React.FC = () => {
               learner_id: learner.id,
               lesson_id: currentLesson.id,
               completed: true,
-              score: 0,
+              score,
               updated_at: new Date().toISOString()
             })
             .select();
@@ -399,7 +423,7 @@ const LearnerPage: React.FC = () => {
 
       if (existingProgress) {
         setProgressData(prev => prev.map(p =>
-          p.id === existingProgress.id ? { ...p, completed: true } : p
+          p.id === existingProgress.id ? { ...p, completed: true, score } : p
         ));
       } else {
         setProgressData(prev => [...prev, {
@@ -407,7 +431,7 @@ const LearnerPage: React.FC = () => {
           learner_id: learner.id,
           lesson_id: currentLesson.id,
           completed: true,
-          score: 0,
+          score,
           updated_at: new Date().toISOString()
         }]);
       }
@@ -822,6 +846,22 @@ const LearnerPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      {/* Results Summary Modal */}
+      {showResultsSummary && resultsSummaryData && (
+        <ResultsSummary
+          lessonId={resultsSummaryData.lessonId}
+          quizId={resultsSummaryData.quizId}
+          score={resultsSummaryData.score}
+          totalPoints={resultsSummaryData.totalPoints}
+          taskType={resultsSummaryData.taskType}
+          onContinue={() => {
+            setShowResultsSummary(false);
+            fetchData(); // Refresh data after continuing
+          }}
+          onClose={() => setShowResultsSummary(false)}
+        />
+      )}
+
       {/* Mobile Header */}
       <div className="md:hidden bg-white/80 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center">
         <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(!showMobileMenu)}>
@@ -862,6 +902,9 @@ const LearnerPage: React.FC = () => {
           <Button variant="ghost" className="w-full justify-start" onClick={() => { setActiveTab('progress'); setShowMobileMenu(false); }}>
             <Star className="h-4 w-4 mr-2 text-yellow-500" /> My Progress
           </Button>
+          <Button variant="ghost" className="w-full justify-start" onClick={() => { setActiveTab('leaderboard'); setShowMobileMenu(false); }}>
+            <Trophy className="h-4 w-4 mr-2 text-yellow-500" /> Leaderboard
+          </Button>
           <Button variant="ghost" className="w-full justify-start" onClick={() => { setActiveTab('help'); setShowMobileMenu(false); }}>
             <Lightbulb className="h-4 w-4 mr-2 text-green-500" /> Help Center
           </Button>
@@ -876,8 +919,11 @@ const LearnerPage: React.FC = () => {
           </div>
           <div className="hidden md:flex items-center space-x-4">
             <Button
+              className={cn(
+                "flex items-center gap-2 bg-white hover:bg-gray-50 shadow-sm border",
+                copied ? "bg-green-50 border-green-200" : ""
+              )}
               onClick={copyToClipboard}
-              className="flex items-center gap-2 bg-white hover:bg-gray-50 shadow-sm border"
             >
               {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-blue-600" />}
               {copied ? 'Copied!' : 'Copy Progress'}
@@ -980,17 +1026,25 @@ const LearnerPage: React.FC = () => {
           </div>
         )}
 
+        {/* Monthly Winner Card */}
+        <div className="mb-6">
+          <MonthlyWinnerCard />
+        </div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Content */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid grid-cols-3 bg-white/50 backdrop-blur-sm">
+              <TabsList className="grid grid-cols-4 bg-white/50 backdrop-blur-sm">
                 <TabsTrigger value="lessons" className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" /> Lessons
                 </TabsTrigger>
                 <TabsTrigger value="progress" className="flex items-center gap-2">
                   <Star className="h-4 w-4" /> Progress
+                </TabsTrigger>
+                <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4" /> Leaderboard
                 </TabsTrigger>
                 <TabsTrigger value="help" className="flex items-center gap-2">
                   <Lightbulb className="h-4 w-4" /> Help
@@ -1220,6 +1274,10 @@ const LearnerPage: React.FC = () => {
                     </CardContent>
                   </Card>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="leaderboard">
+                <Leaderboard />
               </TabsContent>
 
               <TabsContent value="help">
@@ -1461,6 +1519,14 @@ const LearnerPage: React.FC = () => {
 
                   <Button
                     className="w-full justify-start bg-white border border-blue-200 hover:bg-blue-50 text-blue-700"
+                    onClick={() => setActiveTab('leaderboard')}
+                  >
+                    <Trophy className="h-4 w-4 mr-2" />
+                    View Leaderboard
+                  </Button>
+
+                  <Button
+                    className="w-full justify-start bg-white border border-purple-200 hover:bg-purple-50 text-purple-700"
                     onClick={() => setActiveTab('help')}
                   >
                     <Lightbulb className="h-4 w-4 mr-2" />
@@ -1702,6 +1768,9 @@ const LearnerPage: React.FC = () => {
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setActiveTab('progress')} className="flex items-center gap-2">
                 <Star className="h-4 w-4" /> Progress
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setActiveTab('leaderboard')} className="flex items-center gap-2">
+                <Trophy className="h-4 w-4" /> Leaderboard
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setActiveTab('help')} className="flex items-center gap-2">
                 <Lightbulb className="h-4 w-4" /> Help
