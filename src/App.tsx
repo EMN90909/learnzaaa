@@ -11,7 +11,6 @@ import DashboardPage from "./pages/DashboardPage";
 import LessonsPage from "./pages/LessonsPage";
 import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
-import LearnersDashboard from "./pages/LearnersDashboard";
 import LearnerAuthPage from "./pages/LearnerAuthPage";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import AddLearnerPage from "./pages/AddLearnerPage";
@@ -40,7 +39,7 @@ const App = () => (
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/lessons" element={<LessonsPage />} />
-              <Route path="/learners" element={<LearnersDashboard />} />
+              <Route path="/learners" element={<AddLearnerPage />} />
               <Route path="/learners/add" element={<AddLearnerPage />} />
               <Route path="/billing" element={<BillingPage />} />
               {/* Add other protected routes here */}
