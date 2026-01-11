@@ -457,3 +457,195 @@
     opacity: 0;
   }
 }
+
+/* Lesson Card Styles for different age groups */
+.lesson-card-young {
+  width: 320px;
+  height: 350px;
+  padding: 20px;
+  color: white;
+  background: linear-gradient(#212121, #212121) padding-box,
+              linear-gradient(145deg, transparent 35%,#e81cff, #40c9ff) border-box;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transform-origin: right bottom;
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.lesson-card-middle {
+  width: 320px;
+  height: 350px;
+  padding: 20px;
+  color: white;
+  background: linear-gradient(#212121, #212121) padding-box,
+              linear-gradient(145deg, transparent 35%,#40c9ff, #e81cff) border-box;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transform-origin: right bottom;
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.lesson-card-older {
+  width: 320px;
+  height: 350px;
+  padding: 20px;
+  color: white;
+  background: linear-gradient(#212121, #212121) padding-box,
+              linear-gradient(145deg, transparent 35%,#8b5cf6, #06b6d4) border-box;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transform-origin: right bottom;
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.lesson-card-young:hover,
+.lesson-card-middle:hover,
+.lesson-card-older:hover {
+  rotate: 8deg;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.lesson-card-main-content {
+  flex: 1;
+}
+
+.lesson-card-header span:first-child {
+  font-weight: 600;
+  color: #717171;
+  margin-right: 4px;
+}
+
+.lesson-card-heading {
+  font-size: 24px;
+  margin: 24px 0 16px;
+  font-weight: 600;
+}
+
+.lesson-card-categories {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lesson-card-categories span {
+  background-color: #e81cff;
+  padding: 4px 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  border-radius: 50em;
+}
+
+.lesson-card-footer {
+  font-weight: 600;
+  color: #717171;
+  margin-right: 4px;
+}
+
+/* For young age group (7-9) */
+.lesson-card-young .lesson-card-categories span {
+  background-color: #ff6b6b;
+}
+
+/* For middle age group (10-12) */
+.lesson-card-middle .lesson-card-categories span {
+  background-color: #40c9ff;
+}
+
+/* For older age group (13-15) */
+.lesson-card-older .lesson-card-categories span {
+  background-color: #8b5cf6;
+}
+
+/* Responsive grid for lesson cards */
+.lesson-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Animation for lesson cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lesson-card-animation {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Image wrapper styles */
+.lesson-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.lesson-image-wrapper img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.lesson-image-wrapper:hover img {
+  transform: scale(1.05);
+}
+
+/* Cartoon image styles for young learners */
+.cartoon-image {
+  border: 3px solid #ff6b6b;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+}
+
+/* Part navigation styles */
+.part-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.part-nav-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.part-nav-button.active {
+  background-color: #40c9ff;
+  color: white;
+}
+
+/* Multi-part lesson indicator */
+.lesson-parts-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #f0f9ff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  color: #0ea5e9;
+}
+
+.lesson-parts-indicator span {
+  font-weight: 600;
+}

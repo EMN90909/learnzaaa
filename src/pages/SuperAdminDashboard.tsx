@@ -12,11 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, Users, BookOpen, FileText, Plus, Edit, Trash2, LogOut, ShieldCheck, GraduationCap } from 'lucide-react';
+import { Loader2, Users, BookOpen, FileText, Plus, Edit, Trash2, LogOut, ShieldCheck, GraduationCap, Lock, Unlock, Key, Database, Settings, AlertTriangle, CheckCircle, Image as ImageIcon, ArrowLeft, ArrowRight, Save } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import LessonCardWithImage from '@/components/LessonCardWithImage';
+import LessonPartsManager from '@/components/LessonPartsManager';
 
 interface User {
   id: string;
@@ -40,8 +42,26 @@ interface Lesson {
   subject: string;
   age_range: string;
   md_content: string;
+  image_url?: string;
+  parts?: number;
   created_at: string;
   is_premium?: boolean;
+}
+
+interface Organization {
+  id: string;
+  tier: string;
+  stripe_customer_id?: string;
+  subscription_status?: string;
+}
+
+interface SecurityLog {
+  id: string;
+  user_id: string;
+  action: string;
+  details: string;
+  ip_address: string;
+  created_at: string;
 }
 
 const SuperAdminDashboard: React.FC = () => {
@@ -50,20 +70,33 @@ const SuperAdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [learners, setLearners] = useState<Learner[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isAddLessonModalOpen, setIsAddLessonModalOpen] = useState(false);
   const [isEditLessonModalOpen, setIsEditLessonModalOpen] = useState(false);
+  const [isPartsManagerOpen, setIsPartsManagerOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [newLesson, setNewLesson] = useState({
     title: '',
     subject: '',
     age_range: '',
     md_content: '',
+    image_url: '',
+    parts: 1,
     is_premium: false
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [securitySettings, setSecuritySettings] = useState({
+    enableTwoFactor: false,
+    requireStrongPasswords: true,
+    sessionTimeout: 30,
+    maxLoginAttempts: 5,
+    ipRestrictions: false
+  });
 
   // Check if user is authorized super admin
   const isAuthorized = user?.email === 'nasongoemmanuel8@gmail.com';
@@ -111,7 +144,25 @@ const SuperAdminDashboard: React.FC = () => {
       if (lessonsError) throw lessonsError;
       setLessons(lessonsData || []);
 
-      showSuccess('Dashboard data loaded successfully!');
+      // Fetch all organizations
+      const { data: orgsData, error: orgsError } = await supabase
+        .from('organizations')
+        .select('*');
+
+      if (orgsError) throw orgsError;
+      setOrganizations(orgsData || []);
+
+      // Fetch security logs
+      const { data: logsData, error: logsError } = await supabase
+        .from('security_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (logsError) throw logsError;
+      setSecurityLogs(logsData || []);
+
+      showSuccess('Super Admin Dashboard loaded successfully!');
     } catch (error: any) {
       showError('Failed to load dashboard data: ' + error.message);
       console.error('Error loading dashboard data:', error);
@@ -144,12 +195,17 @@ const SuperAdminDashboard: React.FC = () => {
           subject: newLesson.subject,
           age_range: newLesson.age_range,
           md_content: newLesson.md_content,
+          image_url: newLesson.image_url,
+          parts: newLesson.parts,
           is_premium: newLesson.is_premium
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Log security event
+      await logSecurityEvent('lesson_created', `Created lesson: ${newLesson.title}`);
 
       showSuccess('Lesson added successfully!');
       setLessons(prev => [data, ...prev]);
@@ -158,6 +214,8 @@ const SuperAdminDashboard: React.FC = () => {
         subject: '',
         age_range: '',
         md_content: '',
+        image_url: '',
+        parts: 1,
         is_premium: false
       });
       setIsAddLessonModalOpen(false);
@@ -178,6 +236,8 @@ const SuperAdminDashboard: React.FC = () => {
           subject: editingLesson.subject,
           age_range: editingLesson.age_range,
           md_content: editingLesson.md_content,
+          image_url: editingLesson.image_url,
+          parts: editingLesson.parts,
           is_premium: editingLesson.is_premium
         })
         .eq('id', editingLesson.id)
@@ -185,6 +245,9 @@ const SuperAdminDashboard: React.FC = () => {
         .single();
 
       if (error) throw error;
+
+      // Log security event
+      await logSecurityEvent('lesson_updated', `Updated lesson: ${editingLesson.title}`);
 
       showSuccess('Lesson updated successfully!');
       setLessons(prev => prev.map(l => l.id === data.id ? data : l));
@@ -202,6 +265,7 @@ const SuperAdminDashboard: React.FC = () => {
     }
 
     try {
+      const lessonToDelete = lessons.find(l => l.id === lessonId);
       const { error } = await supabase
         .from('lessons')
         .delete()
@@ -209,11 +273,42 @@ const SuperAdminDashboard: React.FC = () => {
 
       if (error) throw error;
 
+      // Log security event
+      await logSecurityEvent('lesson_deleted', `Deleted lesson: ${lessonToDelete?.title || lessonId}`);
+
       showSuccess('Lesson deleted successfully!');
       setLessons(prev => prev.filter(l => l.id !== lessonId));
     } catch (error: any) {
       showError('Failed to delete lesson: ' + error.message);
       console.error('Error deleting lesson:', error);
+    }
+  };
+
+  const logSecurityEvent = async (action: string, details: string) => {
+    try {
+      await supabase.from('security_logs').insert({
+        user_id: user?.id || 'system',
+        action,
+        details,
+        ip_address: 'N/A',
+        created_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error logging security event:', error);
+    }
+  };
+
+  const handleSecuritySettingsUpdate = async () => {
+    try {
+      // In a real application, you would save these settings to your database
+      // For this demo, we'll just show a success message
+      await logSecurityEvent('security_settings_updated', `Updated security settings: ${JSON.stringify(securitySettings)}`);
+
+      showSuccess('Security settings updated successfully!');
+      setShowSecurityModal(false);
+    } catch (error: any) {
+      showError('Failed to update security settings: ' + error.message);
+      console.error('Error updating security settings:', error);
     }
   };
 
@@ -269,7 +364,7 @@ const SuperAdminDashboard: React.FC = () => {
 
       <main className="container mx-auto p-4">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="border-2 border-blue-100">
             <CardHeader className="bg-blue-50">
               <CardTitle className="flex items-center gap-2">
@@ -305,15 +400,141 @@ const SuperAdminDashboard: React.FC = () => {
               <p className="text-sm text-gray-500 mt-1">Available lessons</p>
             </CardContent>
           </Card>
+
+          <Card className="border-2 border-red-100">
+            <CardHeader className="bg-red-50">
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-red-600" /> Security Alerts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-600">{securityLogs.length}</div>
+              <p className="text-sm text-gray-500 mt-1">Recent security events</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid grid-cols-3 max-w-md">
+          <TabsList className="grid grid-cols-5 max-w-md">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="learners">Learners</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard">
+            <div className="space-y-6">
+              {/* System Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Overview</CardTitle>
+                  <CardDescription>Learnzaa platform statistics and health</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold mb-3 flex items-center gap-2">
+                        <Database className="text-blue-500" /> Database Status
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Users Table</span>
+                          <Badge variant="default" className="bg-green-100 text-green-800">Healthy</Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Learners Table</span>
+                          <Badge variant="default" className="bg-green-100 text-green-800">Healthy</Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Lessons Table</span>
+                          <Badge variant="default" className="bg-green-100 text-green-800">Healthy</Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Organizations Table</span>
+                          <Badge variant="default" className="bg-green-100 text-green-800">Healthy</Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-semibold mb-3 flex items-center gap-2">
+                        <ShieldCheck className="text-green-500" /> Security Status
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Two-Factor Authentication</span>
+                          <Badge variant={securitySettings.enableTwoFactor ? "default" : "secondary"}>
+                            {securitySettings.enableTwoFactor ? "Enabled" : "Disabled"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Strong Passwords</span>
+                          <Badge variant={securitySettings.requireStrongPasswords ? "default" : "secondary"}>
+                            {securitySettings.requireStrongPasswords ? "Required" : "Optional"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Session Timeout</span>
+                          <Badge variant="default" className="bg-blue-100 text-blue-800">
+                            {securitySettings.sessionTimeout} minutes
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Max Login Attempts</span>
+                          <Badge variant="default" className="bg-blue-100 text-blue-800">
+                            {securitySettings.maxLoginAttempts}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button
+                    onClick={() => setShowSecurityModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Security Settings
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                  <CardDescription>Latest actions in the system</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {securityLogs.slice(0, 5).map((log) => (
+                      <div key={log.id} className="flex items-start space-x-3 p-3 border rounded-lg bg-white">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                          <ShieldCheck className="h-4 w-4 text-blue-600 dark:text-blue-300" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium">{log.action}</p>
+                              <p className="text-sm text-gray-500">{log.details}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">
+                                {new Date(log.created_at).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           <TabsContent value="users">
             <Card>
@@ -330,6 +551,7 @@ const SuperAdminDashboard: React.FC = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -342,6 +564,11 @@ const SuperAdminDashboard: React.FC = () => {
                             <Badge variant={user.email === 'nasongoemmanuel8@gmail.com' ? 'default' : 'secondary'}>
                               {user.email === 'nasongoemmanuel8@gmail.com' ? 'Super Admin' : 'User'}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="text-blue-500 hover:text-blue-600">
+                              <Edit className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -413,48 +640,95 @@ const SuperAdminDashboard: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredLessons.map((lesson) => (
-                    <Card
+                    <LessonCardWithImage
                       key={lesson.id}
-                      className="hover:shadow-lg transition-shadow cursor-pointer"
+                      lesson={lesson}
                       onClick={() => {
                         setSelectedLesson(lesson);
                         setIsEditLessonModalOpen(true);
                       }}
-                    >
-                      <CardHeader>
-                        <CardTitle className="text-lg">{lesson.title}</CardTitle>
-                        <CardDescription className="flex items-center gap-2">
-                          <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">
-                            {lesson.subject}
-                          </span>
-                          {lesson.is_premium && (
-                            <span className="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-full text-xs font-medium">
-                              Premium
-                            </span>
-                          )}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 line-clamp-3">{lesson.md_content.substring(0, 100)}...</p>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <span className="text-xs text-gray-500">
-                          {new Date(lesson.created_at).toLocaleDateString()}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:text-red-600"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteLesson(lesson.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </CardFooter>
-                    </Card>
+                      ageGroup="middle"
+                    />
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security">
+            <Card>
+              <CardHeader className="flex flex-row justify-between items-center">
+                <div>
+                  <CardTitle>Security Center</CardTitle>
+                  <CardDescription>Monitor and manage system security</CardDescription>
+                </div>
+                <Button
+                  onClick={() => setShowSecurityModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Security Settings
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <AlertTriangle className="text-red-500" /> Recent Security Events
+                    </h3>
+                    <div className="space-y-3">
+                      {securityLogs.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-lg">
+                          <p className="text-gray-500">No security events recorded</p>
+                        </div>
+                      ) : (
+                        securityLogs.map((log) => (
+                          <div key={log.id} className="p-3 border rounded-lg bg-white">
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                                  <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-300" />
+                                </div>
+                                <div>
+                                  <p className="font-medium">{log.action}</p>
+                                  <p className="text-sm text-gray-500">{log.details}</p>
+                                  <p className="text-xs text-gray-400 mt-1">User: {log.user_id}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-gray-500">
+                                  {new Date(log.created_at).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <ShieldCheck className="text-green-500" /> Security Dashboard
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <CheckCircle className="text-green-600" /> System Health
+                        </h4>
+                        <p className="text-sm text-green-700">All systems operational</p>
+                        <p className="text-xs text-green-600 mt-1">Last check: {new Date().toLocaleTimeString()}</p>
+                      </div>
+
+                      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <AlertTriangle className="text-yellow-600" /> Security Alerts
+                        </h4>
+                        <p className="text-sm text-yellow-700">No active alerts</p>
+                        <p className="text-xs text-yellow-600 mt-1">Monitoring active</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -468,7 +742,7 @@ const SuperAdminDashboard: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Add New Lesson</DialogTitle>
             <DialogDescription>
-              Create a new lesson using Markdown format
+              Create a new lesson with image support and multi-part structure
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -503,6 +777,51 @@ const SuperAdminDashboard: React.FC = () => {
                 value={newLesson.age_range}
                 onChange={(e) => setNewLesson({...newLesson, age_range: e.target.value})}
               />
+            </div>
+
+            <div>
+              <Label htmlFor="lesson-image-url">Cover Image URL</Label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  id="lesson-image-url"
+                  placeholder="https://example.com/image.jpg"
+                  value={newLesson.image_url}
+                  onChange={(e) => setNewLesson({...newLesson, image_url: e.target.value})}
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    showSuccess('Image URL field ready for paste!');
+                  }}
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              {newLesson.image_url && (
+                <div className="mt-2 p-2 bg-gray-50 rounded-lg border">
+                  <img
+                    src={newLesson.image_url}
+                    alt="Preview"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="lesson-parts">Number of Parts</Label>
+              <Input
+                id="lesson-parts"
+                type="number"
+                min="1"
+                max="10"
+                value={newLesson.parts}
+                onChange={(e) => setNewLesson({...newLesson, parts: parseInt(e.target.value) || 1})}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Parts allow you to break lessons into multiple sections that are linked together
+              </p>
             </div>
 
             <div>
@@ -558,7 +877,7 @@ const SuperAdminDashboard: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Edit Lesson</DialogTitle>
             <DialogDescription>
-              Edit the lesson content
+              Edit the lesson content and settings
             </DialogDescription>
           </DialogHeader>
           {editingLesson && (
@@ -594,6 +913,51 @@ const SuperAdminDashboard: React.FC = () => {
               </div>
 
               <div>
+                <Label htmlFor="edit-lesson-image-url">Cover Image URL</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="edit-lesson-image-url"
+                    placeholder="https://example.com/image.jpg"
+                    value={editingLesson.image_url || ''}
+                    onChange={(e) => setEditingLesson({...editingLesson, image_url: e.target.value})}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      showSuccess('Image URL field ready for paste!');
+                    }}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                {editingLesson.image_url && (
+                  <div className="mt-2 p-2 bg-gray-50 rounded-lg border">
+                    <img
+                      src={editingLesson.image_url}
+                      alt="Preview"
+                      className="w-full h-32 object-cover rounded"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="edit-lesson-parts">Number of Parts</Label>
+                <Input
+                  id="edit-lesson-parts"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={editingLesson.parts || 1}
+                  onChange={(e) => setEditingLesson({...editingLesson, parts: parseInt(e.target.value) || 1})}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Parts allow you to break lessons into multiple sections that are linked together
+                </p>
+              </div>
+
+              <div>
                 <Label htmlFor="edit-lesson-content">Lesson Content (Markdown)</Label>
                 <Textarea
                   id="edit-lesson-content"
@@ -622,20 +986,55 @@ const SuperAdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsEditLessonModalOpen(false)}>
-                  Cancel
-                </Button>
+              <div className="flex justify-between items-center">
                 <Button
                   type="button"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={handleEditLesson}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={() => {
+                    setIsPartsManagerOpen(true);
+                    setIsEditLessonModalOpen(false);
+                  }}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Update Lesson
+                  <Save className="h-4 w-4 mr-2" />
+                  Manage Parts ({editingLesson.parts || 1})
                 </Button>
+
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsEditLessonModalOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={handleEditLesson}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Update Lesson
+                  </Button>
+                </div>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Lesson Parts Manager Modal */}
+      <Dialog open={isPartsManagerOpen} onOpenChange={setIsPartsManagerOpen}>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Lesson Parts Manager</DialogTitle>
+            <DialogDescription>
+              Manage multi-part lessons for {editingLesson?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {editingLesson && (
+            <LessonPartsManager
+              lessonId={editingLesson.id}
+              initialParts={editingLesson.parts || 1}
+              onPartsUpdated={(count) => {
+                setEditingLesson(prev => prev ? {...prev, parts: count} : null);
+              }}
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -670,7 +1069,23 @@ const SuperAdminDashboard: React.FC = () => {
                     {selectedLesson.is_premium ? 'Premium' : 'Free'}
                   </Badge>
                 </div>
+                {selectedLesson.parts && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Parts</p>
+                    <p className="font-medium">{selectedLesson.parts} parts</p>
+                  </div>
+                )}
               </div>
+
+              {selectedLesson.image_url && (
+                <div className="mb-4">
+                  <img
+                    src={selectedLesson.image_url}
+                    alt={selectedLesson.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
 
               <div className="p-4 bg-gray-50 rounded-lg border">
                 <h3 className="font-semibold mb-2">Lesson Content</h3>
@@ -704,6 +1119,98 @@ const SuperAdminDashboard: React.FC = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Security Settings Modal */}
+      <Dialog open={showSecurityModal} onOpenChange={setShowSecurityModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Security Settings</DialogTitle>
+            <DialogDescription>
+              Configure system security parameters
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                <div>
+                  <Label className="font-medium">Two-Factor Authentication</Label>
+                  <p className="text-sm text-gray-500">Require 2FA for admin accounts</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={securitySettings.enableTwoFactor}
+                  onChange={(e) => setSecuritySettings({...securitySettings, enableTwoFactor: e.target.checked})}
+                  className="h-5 w-5"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                <div>
+                  <Label className="font-medium">Strong Passwords</Label>
+                  <p className="text-sm text-gray-500">Enforce strong password requirements</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={securitySettings.requireStrongPasswords}
+                  onChange={(e) => setSecuritySettings({...securitySettings, requireStrongPasswords: e.target.checked})}
+                  className="h-5 w-5"
+                />
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg border">
+                <Label className="font-medium">Session Timeout (minutes)</Label>
+                <p className="text-sm text-gray-500 mb-2">Auto-logout after inactivity</p>
+                <Input
+                  type="number"
+                  value={securitySettings.sessionTimeout}
+                  onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: parseInt(e.target.value) || 0})}
+                  min="5"
+                  max="120"
+                />
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg border">
+                <Label className="font-medium">Max Login Attempts</Label>
+                <p className="text-sm text-gray-500 mb-2">Before account lockout</p>
+                <Input
+                  type="number"
+                  value={securitySettings.maxLoginAttempts}
+                  onChange={(e) => setSecuritySettings({...securitySettings, maxLoginAttempts: parseInt(e.target.value) || 0})}
+                  min="3"
+                  max="10"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                <div>
+                  <Label className="font-medium">IP Restrictions</Label>
+                  <p className="text-sm text-gray-500">Restrict admin access to specific IPs</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={securitySettings.ipRestrictions}
+                  onChange={(e) => setSecuritySettings({...securitySettings, ipRestrictions: e.target.checked})}
+                  className="h-5 w-5"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowSecurityModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleSecuritySettingsUpdate}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Save Settings
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

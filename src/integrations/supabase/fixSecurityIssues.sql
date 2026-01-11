@@ -1,32 +1,38 @@
--- Create lesson_views table for tracking
-CREATE TABLE IF NOT EXISTS lesson_views (
+-- Add image_url and parts columns to lessons table if they don't exist
+ALTER TABLE lessons
+ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+ALTER TABLE lessons
+ADD COLUMN IF NOT EXISTS parts INTEGER DEFAULT 1;
+
+-- Create lesson_parts table for managing multi-part lessons
+CREATE TABLE IF NOT EXISTS lesson_parts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  learner_id UUID REFERENCES learners(id) ON DELETE CASCADE,
   lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
-  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  part_number INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT,
+  image_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(lesson_id, part_number)
 );
 
--- Create index for faster queries
-CREATE INDEX IF NOT EXISTS idx_lesson_views_learner ON lesson_views(learner_id);
-CREATE INDEX IF NOT EXISTS idx_lesson_views_lesson ON lesson_views(lesson_id);
-CREATE INDEX IF NOT EXISTS idx_lesson_views_viewed_at ON lesson_views(viewed_at);
+-- Create a function to update the updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
--- Grant permissions
-ALTER TABLE lesson_views ENABLE ROW LEVEL SECURITY;
+-- Create a trigger to update the updated_at column
+CREATE TRIGGER update_lesson_parts_updated_at
+BEFORE UPDATE ON lesson_parts
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
 
--- Allow authenticated users to insert lesson views
-CREATE POLICY "Allow authenticated users to insert lesson views"
-ON lesson_views FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
--- Allow authenticated users to read their own lesson views
-CREATE POLICY "Allow authenticated users to read their own lesson views"
-ON lesson_views FOR SELECT
-TO authenticated
-USING (
-  (auth.uid() = user_id) OR
-  (learner_id IN (SELECT id FROM learners WHERE org_id = (SELECT org_id FROM profiles WHERE id = auth.uid())))
-);
+-- Add CSS for the lesson cards
+COMMENT ON TABLE lessons IS 'Contains all lessons with support for images and multi-part lessons';
+COMMENT ON TABLE lesson_parts IS 'Contains individual parts of multi-part lessons';
