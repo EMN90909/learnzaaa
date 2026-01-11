@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, BookOpen, Star, Award, Upload, LogOut, Menu, CheckCircle, Lightbulb, PartyPopper, Copy, Check, AlertCircle, Files, X, GraduationCap } from 'lucide-react';
+import { Loader2, BookOpen, Star, Award, Upload, LogOut, Menu, CheckCircle, Lightbulb, PartyPopper, Copy, Check, AlertCircle, Files, X, GraduationCap, Trophy } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
