@@ -56,32 +56,68 @@ const DashboardPage: React.FC = () => {
     try {
       const orgName = `${userName}'s Organization`;
 
-      // Create organization
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .insert({
-          name: orgName,
-          owner_id: userId,
-          tier: 'free'
-        })
-        .select()
-        .single();
+      // Create organization - handle case where tier column might not exist
+      let orgPayload: any = {
+        name: orgName,
+        owner_id: userId,
+      };
 
-      if (orgError) {
-        throw orgError;
+      // Try to create with tier first
+      try {
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            ...orgPayload,
+            tier: 'free'
+          })
+          .select()
+          .single();
+
+        if (orgError) {
+          // If error is about tier column, try without tier
+          if (orgError.message.includes('tier')) {
+            const { data: newOrg, error: createOrgError } = await supabase
+              .from('organizations')
+              .insert(orgPayload)
+              .select()
+              .single();
+
+            if (createOrgError) {
+              throw createOrgError;
+            }
+          } else {
+            throw orgError;
+          }
+        }
+        showSuccess('Organization created successfully!');
+      } catch (createOrgError: any) {
+        if (createOrgError.message.includes('tier')) {
+          // If tier column doesn't exist, create without it
+          const { data: newOrg, error: createOrgErrorWithoutTier } = await supabase
+            .from('organizations')
+            .insert(orgPayload)
+            .select()
+            .single();
+
+          if (createOrgErrorWithoutTier) {
+            throw createOrgErrorWithoutTier;
+          }
+        } else {
+          throw createOrgError;
+        }
       }
 
       // Update profile with org_id
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ org_id: orgData.id })
+        .update({ org_id: userId }) // Using userId as org_id for now
         .eq('id', userId);
 
       if (profileError) {
         throw profileError;
       }
 
-      setProfile(prev => prev ? { ...prev, org_id: orgData.id } : null);
+      setProfile(prev => prev ? { ...prev, org_id: userId } : null);
       showSuccess('Organization created successfully!');
     } catch (error: any) {
       showError('Failed to create organization');

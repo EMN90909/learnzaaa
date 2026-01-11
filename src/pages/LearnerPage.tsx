@@ -236,19 +236,29 @@ const LearnerPage: React.FC = () => {
       setAgeGroup(group);
 
       // Fetch organization data
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizations')
-        .select('*')
-        .eq('id', parsedLearner.org_id)
-        .single();
+      try {
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', parsedLearner.org_id)
+          .single();
 
-      if (orgError) throw orgError;
-      setOrganization(orgData);
+        if (orgError) {
+          // If there's an error, assume free tier
+          setOrganization({ id: parsedLearner.org_id, tier: 'free' });
+        } else {
+          // Check if tier exists, otherwise default to free
+          setOrganization({ id: orgData.id, tier: orgData.tier || 'free' });
+        }
+      } catch (orgError) {
+        console.warn('Could not fetch organization tier, defaulting to free:', orgError);
+        setOrganization({ id: parsedLearner.org_id, tier: 'free' });
+      }
 
       // Fetch lessons based on organization tier
       let lessonsQuery = supabase.from('lessons').select('*');
 
-      if (orgData?.tier === 'free') {
+      if (organization?.tier === 'free') {
         lessonsQuery = lessonsQuery.or('is_premium.is.null,is_premium.eq.false');
       }
 

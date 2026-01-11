@@ -60,29 +60,55 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
       // If organization doesn't exist, create it
       if (orgError && orgError.code === 'PGRST116') {
         // First check if organizations table has tier column
-        const { data: tableData, error: tableError } = await supabase
-          .rpc('get_table_columns', { table_name: 'organizations' });
-
         let orgPayload: any = {
           id: orgId,
           name: `Organization for ${orgId}`,
         };
 
-        // Only add tier if the column exists
-        if (!tableError && tableData.includes('tier')) {
-          orgPayload.tier = 'free';
-        }
+        // Try to check if tier column exists by attempting to insert with tier
+        try {
+          const { data: newOrg, error: createOrgError } = await supabase
+            .from('organizations')
+            .insert({
+              ...orgPayload,
+              tier: 'free'
+            })
+            .select()
+            .single();
 
-        const { data: newOrg, error: createOrgError } = await supabase
-          .from('organizations')
-          .insert(orgPayload)
-          .select()
-          .single();
+          if (createOrgError) {
+            // If error is about tier column, try without tier
+            if (createOrgError.message.includes('tier')) {
+              const { data: newOrgWithoutTier, error: createOrgErrorWithoutTier } = await supabase
+                .from('organizations')
+                .insert(orgPayload)
+                .select()
+                .single();
 
-        if (createOrgError) {
-          throw createOrgError;
+              if (createOrgErrorWithoutTier) {
+                throw createOrgErrorWithoutTier;
+              }
+            } else {
+              throw createOrgError;
+            }
+          }
+          showSuccess('Organization created successfully!');
+        } catch (createOrgError: any) {
+          if (createOrgError.message.includes('tier')) {
+            // If tier column doesn't exist, create without it
+            const { data: newOrg, error: createOrgErrorWithoutTier } = await supabase
+              .from('organizations')
+              .insert(orgPayload)
+              .select()
+              .single();
+
+            if (createOrgErrorWithoutTier) {
+              throw createOrgErrorWithoutTier;
+            }
+          } else {
+            throw createOrgError;
+          }
         }
-        showSuccess('Organization created successfully!');
       } else if (orgError) {
         throw orgError;
       }
