@@ -11,11 +11,20 @@ interface MarkdownRendererProps {
   content: string;
   ageGroup?: 'young' | 'middle' | 'older';
   learnerId?: string;
+  lessonId?: string;
+  onTrackingEvent?: (eventType: string, data: any) => void;
 }
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup = 'middle', learnerId }) => {
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  ageGroup = 'middle',
+  learnerId,
+  lessonId,
+  onTrackingEvent
+}) => {
   const [organizationTier, setOrganizationTier] = React.useState<string>('free');
   const [loading, setLoading] = React.useState(true);
+  const { user } = useSession();
 
   // Get age group specific styles
   const getAgeGroupStyles = () => {
@@ -96,6 +105,45 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, ageGroup =
 
     fetchOrganizationTier();
   }, [learnerId]);
+
+  // Track lesson view
+  const trackLessonView = async () => {
+    if (!learnerId || !lessonId) return;
+
+    try {
+      // Record lesson view in database
+      const { error } = await supabase
+        .from('lesson_views')
+        .insert({
+          learner_id: learnerId,
+          lesson_id: lessonId,
+          viewed_at: new Date().toISOString(),
+          user_id: user?.id || null
+        });
+
+      if (error) {
+        console.error('Error tracking lesson view:', error);
+      }
+
+      // Call tracking callback if provided
+      if (onTrackingEvent) {
+        onTrackingEvent('lesson_view', {
+          learnerId,
+          lessonId,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Tracking error:', error);
+    }
+  };
+
+  // Track when component mounts (lesson view)
+  React.useEffect(() => {
+    if (learnerId && lessonId) {
+      trackLessonView();
+    }
+  }, [learnerId, lessonId]);
 
   // Show ads for free accounts
   const showAds = organizationTier === 'free' && !loading;

@@ -1,136 +1,32 @@
--- Fix 1: Set search_path for functions to prevent SQL injection
-ALTER FUNCTION public.update_profiles_updated_at() SET search_path = public;
-ALTER FUNCTION public.update_projects_updated_at() SET search_path = public;
-ALTER FUNCTION public.create_qr_images_bucket() SET search_path = public;
-ALTER FUNCTION public.limit_free_projects() SET search_path = public;
-ALTER FUNCTION public.daily_credit_reset() SET search_path = public;
-ALTER FUNCTION public.update_total_credits_spent() SET search_path = public;
-ALTER FUNCTION public.increment_api_call_count() SET search_path = public;
-ALTER FUNCTION public.reset_daily_api_calls() SET search_path = public;
-ALTER FUNCTION public.award_homework_points() SET search_path = public;
+-- Create lesson_views table for tracking
+CREATE TABLE IF NOT EXISTS lesson_views (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  learner_id UUID REFERENCES learners(id) ON DELETE CASCADE,
+  lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
--- Fix 2: Update overly permissive RLS policies
--- For applications table
-CREATE OR REPLACE POLICY "Authenticated users can insert applications"
-ON public.applications FOR INSERT
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_lesson_views_learner ON lesson_views(learner_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_views_lesson ON lesson_views(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_views_viewed_at ON lesson_views(viewed_at);
+
+-- Grant permissions
+ALTER TABLE lesson_views ENABLE ROW LEVEL SECURITY;
+
+-- Allow authenticated users to insert lesson views
+CREATE POLICY "Allow authenticated users to insert lesson views"
+ON lesson_views FOR INSERT
 TO authenticated
 WITH CHECK (true);
 
-CREATE OR REPLACE POLICY "Authenticated users can update applications"
-ON public.applications FOR UPDATE
+-- Allow authenticated users to read their own lesson views
+CREATE POLICY "Allow authenticated users to read their own lesson views"
+ON lesson_views FOR SELECT
 TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- For learners table
-CREATE OR REPLACE POLICY "Authenticated users can delete learners"
-ON public.learners FOR DELETE
-TO authenticated
-USING (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can insert learners"
-ON public.learners FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can update learners"
-ON public.learners FOR UPDATE
-TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- For lessons table
-CREATE OR REPLACE POLICY "Authenticated users can delete lessons"
-ON public.lessons FOR DELETE
-TO authenticated
-USING (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can insert lessons"
-ON public.lessons FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can update lessons"
-ON public.lessons FOR UPDATE
-TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- For organizations table
-CREATE OR REPLACE POLICY "Authenticated users can delete organizations"
-ON public.organizations FOR DELETE
-TO authenticated
-USING (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can insert organizations"
-ON public.organizations FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can update organizations"
-ON public.organizations FOR UPDATE
-TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- For profiles table
-CREATE OR REPLACE POLICY "Authenticated users can insert profiles"
-ON public.profiles FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can update profiles"
-ON public.profiles FOR UPDATE
-TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- For progress table
-CREATE OR REPLACE POLICY "Authenticated users can delete progress"
-ON public.progress FOR DELETE
-TO authenticated
-USING (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can insert progress"
-ON public.progress FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can update progress"
-ON public.progress FOR UPDATE
-TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- For quizzes table
-CREATE OR REPLACE POLICY "quizzes_delete_policy"
-ON public.quizzes FOR DELETE
-TO authenticated
-USING (true);
-
-CREATE OR REPLACE POLICY "quizzes_insert_policy"
-ON public.quizzes FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE OR REPLACE POLICY "quizzes_update_policy"
-ON public.quizzes FOR UPDATE
-TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- For stripe_payment_intents table
-CREATE OR REPLACE POLICY "Authenticated users can insert stripe payment intents"
-ON public.stripe_payment_intents FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE OR REPLACE POLICY "Authenticated users can update stripe payment intents"
-ON public.stripe_payment_intents FOR UPDATE
-TO authenticated
-USING (true)
-WITH CHECK (true);
-
--- Fix 3: Enable leaked password protection (this needs to be done in Supabase dashboard)
--- Navigate to Authentication -> Settings -> Password Security
--- Enable "Prevent the use of compromised passwords"
+USING (
+  (auth.uid() = user_id) OR
+  (learner_id IN (SELECT id FROM learners WHERE org_id = (SELECT org_id FROM profiles WHERE id = auth.uid())))
+);

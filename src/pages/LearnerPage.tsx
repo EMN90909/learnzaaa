@@ -1082,8 +1082,17 @@ const LearnerPage: React.FC = () => {
                       </CardHeader>
                       <CardContent className="mt-4">
                         <div className="prose dark:prose-invert max-w-none">
-                          {/* Render markdown content using MarkdownRenderer */}
-                          <MarkdownRenderer content={currentLesson.md_content} ageGroup={ageGroup} learnerId={learner.id} />
+                          {/* Render markdown content using MarkdownRenderer with tracking */}
+                          <MarkdownRenderer
+                            content={currentLesson.md_content}
+                            ageGroup={ageGroup}
+                            learnerId={learner.id}
+                            lessonId={currentLesson.id}
+                            onTrackingEvent={(eventType, data) => {
+                              console.log('Tracking event:', eventType, data);
+                              // You could send this to analytics here
+                            }}
+                          />
 
                           {/* Homework Upload Section */}
                           <div className="mt-8">
@@ -1676,7 +1685,8 @@ const LearnerPage: React.FC = () => {
                   onClick={() => showSuccess('💡 Hint: Try to understand the question and think about what you learned in the lesson!')}
                   className="flex items-center gap-2"
                 >
-                  <Lightbulb className="h-4 w-4" /> {ageStyles.hintText}
+                  <Lightbulb className="h-4 w-4" />
+                  {ageStyles.hintText}
                 </Button>
 
                 <Button
@@ -1690,7 +1700,8 @@ const LearnerPage: React.FC = () => {
                     }
                   }}
                 >
-                  <Star className="h-4 w-4" /> {ageStyles.revealText} ({selectedQuiz.reveal_cost} 💎)
+                  <Star className="h-4 w-4" />
+                  {ageStyles.revealText} ({selectedQuiz.reveal_cost} 💎)
                 </Button>
               </div>
             </div>

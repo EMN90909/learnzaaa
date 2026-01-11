@@ -20,6 +20,8 @@ import AboutPage from "./pages/AboutPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import ContactPage from "./pages/ContactPage";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import SuperAdminAuthPage from "./pages/SuperAdminAuthPage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,7 @@ const App = () => (
             <Route path="/" element={<VisitPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/learner-auth" element={<LearnerAuthPage />} />
+            <Route path="/super-admin-auth" element={<SuperAdminAuthPage />} />
             {/* Protected Routes */}
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
@@ -44,6 +47,8 @@ const App = () => (
               <Route path="/billing" element={<BillingPage />} />
               {/* Add other protected routes here */}
             </Route>
+            {/* Super Admin Route - Not protected by PrivateRoute */}
+            <Route path="/super-admin-dashboard" element={<SuperAdminDashboard />} />
             {/* Learner Dashboard Route - Not protected by PrivateRoute */}
             <Route path="/learner-dashboard" element={<LearnerDashboard />} />
             <Route path="/learner-page" element={<LearnerPage />} />

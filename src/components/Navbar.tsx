@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Home, BookOpen, User, GraduationCap, Menu } from 'lucide-react';
+import { LogOut, Home, BookOpen, User, GraduationCap, Menu, ShieldCheck } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -31,6 +31,9 @@ const Navbar: React.FC = () => {
 
   // Check if learner is logged in
   const isLearnerLoggedIn = localStorage.getItem('learnerData') !== null;
+
+  // Check if current user is super admin
+  const isSuperAdmin = session?.user?.email === 'nasongoemmanuel8@gmail.com';
 
   // Hide navbar for learner pages
   if (isLearnerLoggedIn) {
@@ -63,6 +66,22 @@ const Navbar: React.FC = () => {
                 <User className="h-4 w-4 inline-block mr-2" />
                 Learners
               </Link>
+            </Button>
+            {isSuperAdmin && (
+              <Button asChild variant="ghost" className="text-foreground hover:text-primary">
+                <Link to="/super-admin-dashboard">
+                  <ShieldCheck className="h-4 w-4 inline-block mr-2" />
+                  Super Admin
+                </Link>
+              </Button>
+            )}
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              className="text-red-500 hover:text-red-600"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
             </Button>
           </>
         ) : (
