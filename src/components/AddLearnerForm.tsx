@@ -59,13 +59,23 @@ const AddLearnerForm: React.FC<AddLearnerFormProps> = ({ orgId, onLearnerAdded, 
 
       // If organization doesn't exist, create it
       if (orgError && orgError.code === 'PGRST116') {
+        // First check if organizations table has tier column
+        const { data: tableData, error: tableError } = await supabase
+          .rpc('get_table_columns', { table_name: 'organizations' });
+
+        let orgPayload: any = {
+          id: orgId,
+          name: `Organization for ${orgId}`,
+        };
+
+        // Only add tier if the column exists
+        if (!tableError && tableData.includes('tier')) {
+          orgPayload.tier = 'free';
+        }
+
         const { data: newOrg, error: createOrgError } = await supabase
           .from('organizations')
-          .insert({
-            id: orgId,
-            name: `Organization for ${orgId}`,
-            tier: 'free'
-          })
+          .insert(orgPayload)
           .select()
           .single();
 

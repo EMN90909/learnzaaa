@@ -23,7 +23,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
 interface Learner {
   id: string;
@@ -49,26 +49,11 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLearner, setSelectedLearner] = useState<Learner | null>(null);
   const [organizationTier, setOrganizationTier] = useState<string>('free');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const fetchLearners = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('learners')
-        .select('*')
-        .eq('org_id', orgId);
-
-      if (error) {
-        if (error.code === '42501') {
-          showError('You do not have permission to view learners. Please contact support.');
-        } else {
-          throw error;
-        }
-        return;
-      }
-
-      setLearners(data || []);
-
       // Fetch organization tier - handle case where tier column might not exist
       try {
         const { data: orgData, error: orgError } = await supabase
@@ -89,6 +74,21 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         setOrganizationTier('free');
       }
 
+      const { data, error } = await supabase
+        .from('learners')
+        .select('*')
+        .eq('org_id', orgId);
+
+      if (error) {
+        if (error.code === '42501') {
+          showError('You do not have permission to view learners. Please contact support.');
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      setLearners(data || []);
     } catch (error: any) {
       showError('Failed to fetch learners: ' + error.message);
       console.error('Error fetching learners:', error);
@@ -177,6 +177,14 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
     learner.grade.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleAddLearnerClick = () => {
+    if (organizationTier === 'free' && learners.length >= 1) {
+      setShowUpgradeModal(true);
+    } else {
+      setIsAddLearnerModalOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -203,7 +211,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
           />
           <Dialog open={isAddLearnerModalOpen} onOpenChange={setIsAddLearnerModalOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
+              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleAddLearnerClick}>
                 <Plus className="mr-2 h-4 w-4 inline-block" />
                 Add New Learner
               </Button>
@@ -238,6 +246,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
               <div className="space-y-2">
                 <h4 className="font-semibold">Free Plan Features:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>1 learner max</li>
                   <li>Limited lessons</li>
                   <li>Basic progress tracking</li>
                   <li>Community support</li>
@@ -256,9 +265,9 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
             </div>
             <Button
               className="mt-4 bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => showSuccess('Redirecting to billing page...')}
+              onClick={() => setShowUpgradeModal(true)}
             >
-              <Link to="/billing">Upgrade Now</Link>
+              Upgrade Now
             </Button>
           </CardContent>
         </Card>
@@ -268,7 +277,7 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
         <Card className="text-center p-8">
           <CardContent>
             <p className="text-gray-600 dark:text-gray-400 mb-4">No learners added yet.</p>
-            <Button onClick={() => setIsAddLearnerModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleAddLearnerClick} className="bg-blue-600 hover:bg-blue-700 text-white">
               <Plus className="mr-2 h-4 w-4 inline-block" />
               Add First Learner
             </Button>
@@ -360,6 +369,78 @@ const LearnersTable: React.FC<LearnersTableProps> = ({ orgId }) => {
               onClose={() => setIsEditLearnerModalOpen(false)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Modal */}
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Upgrade Required</DialogTitle>
+            <DialogDescription>
+              {organizationTier === 'free' && learners.length >= 1
+                ? 'You have reached the maximum of 1 learner for the free plan.'
+                : 'Upgrade to premium to unlock more features.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Free Plan */}
+              <Card className="border-2 border-gray-200">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-lg">Free Plan</CardTitle>
+                  <CardDescription>Ksh 0/month</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <ul className="list-disc list-inside space-y-2 text-sm text-left">
+                    <li>1 learner max</li>
+                    <li>Limited lessons</li>
+                    <li>Basic progress tracking</li>
+                    <li>Community support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="text-center">
+                  <Badge variant="default" className="bg-gray-100 text-gray-800">
+                    Current Plan
+                  </Badge>
+                </CardFooter>
+              </Card>
+
+              {/* Premium Plan */}
+              <Card className="border-2 border-green-200">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-lg">Premium Plan</CardTitle>
+                  <CardDescription>Ksh 1,071.73/month per learner</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <ul className="list-disc list-inside space-y-2 text-sm text-left">
+                    <li>Unlimited learners</li>
+                    <li>All lessons & content</li>
+                    <li>Advanced progress tracking</li>
+                    <li>Priority support</li>
+                    <li>10% discount for 2+ learners</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="text-center">
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => {
+                      showSuccess('Upgrade feature coming soon! Contact support to upgrade your account.');
+                      setShowUpgradeModal(false);
+                    }}
+                  >
+                    Upgrade Now
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700">
+                <strong>Note:</strong> Contact support@learnzaa.com to upgrade your account to premium.
+              </p>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
