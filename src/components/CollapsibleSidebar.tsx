@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, ChevronLeft, ChevronRight, Plus, LogOut, Menu, Settings, BookOpen } from 'lucide-react';
+import { Home, Users, ChevronLeft, ChevronRight, Plus, LogOut, Menu, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -30,14 +30,13 @@ const CollapsibleSidebar: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      // Clear local storage first to prevent loops
       localStorage.removeItem('learnerData');
-      const { error } = await supabase.auth.signOut();
+      await supabase.auth.signOut();
       showSuccess('Logged out successfully');
-      navigate('/');
+      navigate('/auth');
     } catch (error) {
       console.error('Logout error:', error);
-      navigate('/');
+      navigate('/auth');
     }
   };
 
@@ -82,13 +81,16 @@ const CollapsibleSidebar: React.FC = () => {
         >
           <div
             className={cn(
-              "fixed left-0 top-0 h-full w-72 bg-white shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
+              "fixed left-0 top-0 h-full w-72 bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 z-50 flex flex-col",
               isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             )}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 flex items-center justify-between border-b">
-              <h2 className="text-2xl font-bold text-blue-600">Learnzaa</h2>
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-bold text-blue-600">Learnzaa</h2>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Admin</span>
+              </div>
               <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
                 <ChevronLeft className="h-6 w-6" />
               </Button>
@@ -98,11 +100,10 @@ const CollapsibleSidebar: React.FC = () => {
               <NavItem to="/dashboard" icon={Home} label="Dashboard" />
               <NavItem to="/learners" icon={Users} label="Learners" />
               <NavItem to="/learners/add" icon={Plus} label="Add Learner" />
-              <NavItem to="/lessons" icon={BookOpen} label="Lessons" />
               <NavItem to="/settings" icon={Settings} label="Settings" />
             </nav>
 
-            <div className="p-6 border-t bg-slate-50">
+            <div className="p-6 border-t bg-slate-50 dark:bg-gray-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10 border-2 border-blue-100">
@@ -129,12 +130,17 @@ const CollapsibleSidebar: React.FC = () => {
   return (
     <div
       className={cn(
-        "flex flex-col h-screen sticky top-0 bg-white border-r transition-all duration-300 ease-in-out z-40",
+        "flex flex-col h-screen sticky top-0 bg-white dark:bg-gray-900 border-r transition-all duration-300 ease-in-out z-40",
         isOpen ? "w-64" : "w-20"
       )}
     >
       <div className="p-6 flex items-center justify-between">
-        {isOpen && <h2 className="text-2xl font-bold text-blue-600">Learnzaa</h2>}
+        {isOpen && (
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-bold text-blue-600">Learnzaa</h2>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Admin Portal</span>
+          </div>
+        )}
         <Button 
           variant="ghost" 
           size="icon" 
@@ -149,11 +155,10 @@ const CollapsibleSidebar: React.FC = () => {
         <NavItem to="/dashboard" icon={Home} label="Dashboard" />
         <NavItem to="/learners" icon={Users} label="Learners" />
         <NavItem to="/learners/add" icon={Plus} label="Add Learner" />
-        <NavItem to="/lessons" icon={BookOpen} label="Lessons" />
         <NavItem to="/settings" icon={Settings} label="Settings" />
       </nav>
 
-      <div className="p-4 border-t bg-slate-50/50">
+      <div className="p-4 border-t bg-slate-50/50 dark:bg-gray-800/50">
         <div className={cn("flex items-center", isOpen ? "justify-between" : "justify-center")}>
           {isOpen ? (
             <>

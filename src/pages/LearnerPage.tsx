@@ -235,7 +235,7 @@ const LearnerPage: React.FC = () => {
   if (!learner) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-950 dark:to-slate-900">
       {showResultsSummary && resultsSummaryData && (
         <ResultsSummary {...resultsSummaryData} onContinue={() => setShowResultsSummary(false)} onClose={() => setShowResultsSummary(false)} />
       )}
@@ -248,7 +248,7 @@ const LearnerPage: React.FC = () => {
               <AvatarFallback className="bg-blue-600 text-white">{learner.name.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border z-50">
                 <Button onClick={handleLogout} className="w-full justify-start text-red-500" variant="ghost">
                   <LogOut className="h-4 w-4 mr-2" /> Logout
                 </Button>
@@ -268,24 +268,24 @@ const LearnerPage: React.FC = () => {
               </span>
             </div>
             <div>
-              <h2 className="text-2xl font-bold">{learner.name}</h2>
-              <p className="text-gray-600">{learner.grade}</p>
+              <h2 className="text-2xl font-bold dark:text-white">{learner.name}</h2>
+              <p className="text-gray-600 dark:text-gray-400">{learner.grade}</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            <Card className="p-3 bg-yellow-50 border-yellow-200">
+            <Card className="p-3 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
               <div className="flex items-center space-x-2">
                 <Star className="h-6 w-6 text-yellow-500" />
-                <span className="text-2xl font-bold">{pointsBalance?.points || 0}</span>
+                <span className="text-2xl font-bold dark:text-yellow-400">{pointsBalance?.points || 0}</span>
                 <span className="text-sm text-gray-500">💎</span>
               </div>
             </Card>
-            <Card className="p-3 bg-purple-50 border-purple-200">
+            <Card className="p-3 bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
               <div className="flex items-center space-x-2">
                 <Award className="h-6 w-6 text-purple-500" />
                 <div className="text-center">
-                  <div className="text-lg font-bold">Level {levelInfo.level}</div>
+                  <div className="text-lg font-bold dark:text-purple-400">Level {levelInfo.level}</div>
                   <Progress value={levelInfo.progress} className="mt-2 h-2" />
                 </div>
               </div>
@@ -300,7 +300,7 @@ const LearnerPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid grid-cols-3 bg-white/50 backdrop-blur-sm">
+              <TabsList className="grid grid-cols-3 bg-white/50 backdrop-blur-sm dark:bg-gray-800/50">
                 <TabsTrigger value="lessons"><BookOpen className="h-4 w-4 mr-2" /> Lessons</TabsTrigger>
                 <TabsTrigger value="progress"><Star className="h-4 w-4 mr-2" /> Progress</TabsTrigger>
                 <TabsTrigger value="leaderboard"><Trophy className="h-4 w-4 mr-2" /> Leaderboard</TabsTrigger>
@@ -308,10 +308,10 @@ const LearnerPage: React.FC = () => {
 
               <TabsContent value="lessons">
                 {currentLesson && (
-                  <Card className="border-2 border-blue-100">
-                    <CardHeader className="bg-blue-50">
-                      <CardTitle>{currentLesson.title}</CardTitle>
-                      <CardDescription>{currentLesson.subject}</CardDescription>
+                  <Card className="border-2 border-blue-100 dark:border-blue-900">
+                    <CardHeader className="bg-blue-50 dark:bg-blue-900/20">
+                      <CardTitle className="dark:text-white">{currentLesson.title}</CardTitle>
+                      <CardDescription className="dark:text-blue-300">{currentLesson.subject}</CardDescription>
                     </CardHeader>
                     <CardContent className="mt-4">
                       <MarkdownRenderer content={currentLesson.md_content} ageGroup={ageGroup} learnerId={learner.id} lessonId={currentLesson.id} />
@@ -329,11 +329,11 @@ const LearnerPage: React.FC = () => {
                 {lessonQuizzes.length > 0 && (
                   <div className="mt-6 space-y-4">
                     {lessonQuizzes.map((quiz) => (
-                      <Card key={quiz.id} className="hover:shadow-md cursor-pointer" onClick={() => { setSelectedQuiz(quiz); setIsModalOpen(true); }}>
+                      <Card key={quiz.id} className="hover:shadow-md cursor-pointer dark:bg-gray-800 dark:border-gray-700" onClick={() => { setSelectedQuiz(quiz); setIsModalOpen(true); }}>
                         <CardContent className="p-4 flex justify-between items-center">
                           <div>
-                            <h3 className="font-semibold">{quiz.question}</h3>
-                            <p className="text-sm text-gray-500">Reward: {quiz.points_reward} 💎</p>
+                            <h3 className="font-semibold dark:text-white">{quiz.question}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Reward: {quiz.points_reward} 💎</p>
                           </div>
                           <Button size="sm" className={ageStyles.colors.secondary}>{ageStyles.buttonText}</Button>
                         </CardContent>
@@ -344,16 +344,16 @@ const LearnerPage: React.FC = () => {
               </TabsContent>
 
               <TabsContent value="progress">
-                <Card className="border-2 border-yellow-100">
-                  <CardHeader className="bg-yellow-50"><CardTitle>My Progress</CardTitle></CardHeader>
+                <Card className="border-2 border-yellow-100 dark:border-yellow-900">
+                  <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20"><CardTitle className="dark:text-white">My Progress</CardTitle></CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="text-center p-4 border rounded">
-                        <div className="text-2xl font-bold">{completedLessons}</div>
+                      <div className="text-center p-4 border rounded dark:border-gray-700">
+                        <div className="text-2xl font-bold dark:text-white">{completedLessons}</div>
                         <div className="text-xs text-gray-500">Lessons</div>
                       </div>
-                      <div className="text-center p-4 border rounded">
-                        <div className="text-2xl font-bold">{pointsBalance?.points || 0}</div>
+                      <div className="text-center p-4 border rounded dark:border-gray-700">
+                        <div className="text-2xl font-bold dark:text-white">{pointsBalance?.points || 0}</div>
                         <div className="text-xs text-gray-500">💎 Points</div>
                       </div>
                     </div>
@@ -368,15 +368,15 @@ const LearnerPage: React.FC = () => {
           </div>
 
           <div className="lg:col-span-1 space-y-6">
-            <Card className="border-2 border-blue-100">
-              <CardHeader className="bg-blue-50"><CardTitle>Next Lessons</CardTitle></CardHeader>
+            <Card className="border-2 border-blue-100 dark:border-blue-900">
+              <CardHeader className="bg-blue-50 dark:bg-blue-900/20"><CardTitle className="dark:text-white">Next Lessons</CardTitle></CardHeader>
               <CardContent>
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-3">
                     {lessons.map((lesson) => (
-                      <div key={lesson.id} className="p-3 border rounded cursor-pointer hover:bg-gray-50" onClick={() => setCurrentLesson(lesson)}>
-                        <h3 className="font-medium">{lesson.title}</h3>
-                        <p className="text-xs text-gray-500">{lesson.subject}</p>
+                      <div key={lesson.id} className="p-3 border rounded cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => setCurrentLesson(lesson)}>
+                        <h3 className="font-medium dark:text-white">{lesson.title}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{lesson.subject}</p>
                       </div>
                     ))}
                   </div>
@@ -388,14 +388,14 @@ const LearnerPage: React.FC = () => {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader><DialogTitle>Quiz</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-[600px] dark:bg-gray-900 dark:border-gray-800">
+          <DialogHeader><DialogTitle className="dark:text-white">Quiz</DialogTitle></DialogHeader>
           {selectedQuiz && (
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold">{selectedQuiz.question}</h3>
+              <h3 className="text-lg font-semibold dark:text-white">{selectedQuiz.question}</h3>
               <div className="space-y-3">
                 {selectedQuiz.options.map((option, index) => (
-                  <Button key={index} className="w-full justify-start" variant="outline" onClick={() => handleQuizAnswer(selectedQuiz.id, index)}>
+                  <Button key={index} className="w-full justify-start dark:text-white dark:border-gray-700" variant="outline" onClick={() => handleQuizAnswer(selectedQuiz.id, index)}>
                     {String.fromCharCode(65 + index)}. {option}
                   </Button>
                 ))}

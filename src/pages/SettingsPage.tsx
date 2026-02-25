@@ -7,14 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, User, Shield, Bell } from 'lucide-react';
+import { Loader2, Save, User, Shield, Bell, Moon, Sun, Monitor } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import CollapsibleSidebar from '@/components/CollapsibleSidebar';
+import { useTheme } from 'next-themes';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const SettingsPage: React.FC = () => {
   const { user } = useSession();
   const [loading, setLoading] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     if (user) {
@@ -52,13 +55,60 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-gray-950">
       <CollapsibleSidebar />
       <main className="flex-1 p-8 overflow-auto">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Settings</h1>
 
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="h-5 w-5" /> Appearance
+                </CardTitle>
+                <CardDescription>Customize how Learnzaa looks for you.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup 
+                  defaultValue={theme} 
+                  onValueChange={(val) => setTheme(val)}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                >
+                  <div>
+                    <RadioGroupItem value="light" id="light" className="peer sr-only" />
+                    <Label
+                      htmlFor="light"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <Sun className="mb-3 h-6 w-6" />
+                      Light
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem value="dark" id="dark" className="peer sr-only" />
+                    <Label
+                      htmlFor="dark"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <Moon className="mb-3 h-6 w-6" />
+                      Dark
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem value="system" id="system" className="peer sr-only" />
+                    <Label
+                      htmlFor="system"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <Monitor className="mb-3 h-6 w-6" />
+                      System
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -101,18 +151,6 @@ const SettingsPage: React.FC = () => {
                 <Button variant="outline" onClick={() => showSuccess('Password reset email sent!')}>
                   Reset Password
                 </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" /> Notifications
-                </CardTitle>
-                <CardDescription>Configure how you receive alerts.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Notification settings coming soon.</p>
               </CardContent>
             </Card>
           </div>
