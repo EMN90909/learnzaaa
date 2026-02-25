@@ -2,16 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, AlertTriangle, Plus } from 'lucide-react';
+import { Loader2, AlertTriangle, Plus, Users, BookOpen, Star } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import CollapsibleSidebar from '@/components/CollapsibleSidebar';
 import LearnersTable from '@/components/LearnersTable';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, Settings, User } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
 interface Profile {
   id: string;
@@ -25,8 +21,6 @@ const DashboardPage: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [creatingOrg, setCreatingOrg] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const isMobile = useIsMobile();
 
   const fetchProfile = async () => {
     if (user) {
@@ -39,10 +33,8 @@ const DashboardPage: React.FC = () => {
 
       if (error) {
         showError('Failed to fetch profile');
-        console.error('Error fetching profile:', error);
       } else {
         setProfile(data);
-        // Only create organization if it doesn't exist
         if (!data.org_id) {
           await createOrganization(data.id, data.display_name || data.email);
         }
@@ -55,84 +47,25 @@ const DashboardPage: React.FC = () => {
     setCreatingOrg(true);
     try {
       const orgName = `${userName}'s Organization`;
+      const { error: orgError } = await supabase
+        .from('organizations')
+        .insert({ id: userId, name: orgName, tier: 'free' });
 
-      // First, create the organization
-      let orgPayload: any = {
-        id: userId, // Use user ID as organization ID
-        name: orgName,
-      };
+      if (orgError && !orgError.message.includes('duplicate')) throw orgError;
 
-      // Try to create with tier first
-      try {
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .insert({
-            ...orgPayload,
-            tier: 'free'
-          })
-          .select()
-          .single();
-
-        if (orgError) {
-          // If error is about tier column, try without tier
-          if (orgError.message.includes('tier')) {
-            const { data: newOrg, error: createOrgError } = await supabase
-              .from('organizations')
-              .insert(orgPayload)
-              .select()
-              .single();
-
-            if (createOrgError) {
-              throw createOrgError;
-            }
-          } else {
-            throw orgError;
-          }
-        }
-        showSuccess('Organization created successfully!');
-      } catch (createOrgError: any) {
-        if (createOrgError.message.includes('tier')) {
-          // If tier column doesn't exist, create without it
-          const { data: newOrg, error: createOrgErrorWithoutTier } = await supabase
-            .from('organizations')
-            .insert(orgPayload)
-            .select()
-            .single();
-
-          if (createOrgErrorWithoutTier) {
-            throw createOrgErrorWithoutTier;
-          }
-        } else {
-          throw createOrgError;
-        }
-      }
-
-      // Now update the profile with the organization ID
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ org_id: userId })
         .eq('id', userId);
 
-      if (profileError) {
-        throw profileError;
-      }
+      if (profileError) throw profileError;
 
       setProfile(prev => prev ? { ...prev, org_id: userId } : null);
-      showSuccess('Organization created and profile updated successfully!');
+      showSuccess('Organization ready!');
     } catch (error: any) {
-      showError('Failed to create organization: ' + error.message);
-      console.error('Error creating organization:', error);
+      console.error('Org creation error:', error);
     } finally {
       setCreatingOrg(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      showError(error.message);
-    } else {
-      showSuccess('Logged out successfully!');
     }
   };
 
@@ -142,117 +75,75 @@ const DashboardPage: React.FC = () => {
 
   if (loading || creatingOrg) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
-      </div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <CardTitle>Profile Not Found</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>There was an issue loading your profile. Please try logging in again.</p>
-            <Button asChild className="mt-4">
-              <Link to="/auth">Go to Login</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex min-h-screen bg-slate-50">
       <CollapsibleSidebar />
-      <main className="flex-1 p-4 overflow-auto">
+      <main className="flex-1 p-8 overflow-auto">
         <div className="container mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Welcome, {profile.display_name || 'Admin'}!
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-slate-900">
+              Welcome back, {profile?.display_name || 'Admin'}
             </h1>
-            <div className="relative">
-              <Avatar
-                className="h-10 w-10 cursor-pointer"
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-              >
-                <AvatarImage src={user?.user_metadata?.avatar_url || undefined} />
-                <AvatarFallback className="bg-blue-600 text-white">
-                  {profile.display_name?.charAt(0).toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              {showProfileMenu && (
-                <div className={cn(
-                  "absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50",
-                  isMobile ? "bottom-12" : "top-full"
-                )}>
-                  <div className="p-4 border-b">
-                    <p className="font-semibold">{profile.display_name}</p>
-                    <p className="text-sm text-gray-500">Admin</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-gray-700 hover:text-gray-900"
-                    onClick={() => {
-                      showSuccess('Settings feature coming soon!');
-                      setShowProfileMenu(false);
-                    }}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </Button>
-                  <Button
-                    onClick={handleLogout}
-                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                    variant="ghost"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </Button>
-                </div>
-              )}
-            </div>
+            <p className="text-slate-500 mt-1">Here's what's happening with your learners today.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="border-none shadow-lg">
-              <CardHeader>
-                <CardTitle>Welcome</CardTitle>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <Users className="h-4 w-4" /> Total Learners
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg text-gray-700 dark:text-gray-300">
-                  Hello, {profile.display_name || 'Admin'}! You're ready to manage your learners.
-                </p>
+                <div className="text-2xl font-bold">Manage below</div>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" /> Active Lessons
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Explore library</div>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <Star className="h-4 w-4" /> Avg. Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Tracking active</div>
               </CardContent>
             </Card>
           </div>
 
-          {profile.org_id ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Your Learners</h2>
-              </div>
+          {profile?.org_id ? (
+            <div className="bg-white rounded-xl shadow-sm border p-6">
               <LearnersTable orgId={profile.org_id} />
             </div>
           ) : (
-            <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
+            <Card className="border-yellow-200 bg-yellow-50">
               <CardHeader className="flex flex-row items-center gap-4">
-                <AlertTriangle className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+                <AlertTriangle className="h-8 w-8 text-yellow-600" />
                 <div>
                   <CardTitle>Organization Setup Required</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  You need to create an organization to manage learners. Click the button below to set up your organization.
+                <p className="text-slate-700 mb-4">
+                  Click below to finalize your organization setup.
                 </p>
-                <Button onClick={() => createOrganization(user?.id || '', profile.display_name || profile.email)} disabled={creatingOrg}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  {creatingOrg ? 'Creating Organization...' : 'Create Organization'}
+                <Button onClick={() => createOrganization(user?.id || '', profile?.display_name || '')}>
+                  <Plus className="h-4 w-4 mr-2" /> Create Organization
                 </Button>
               </CardContent>
             </Card>

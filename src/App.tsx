@@ -22,6 +22,7 @@ import ContactPage from "./pages/ContactPage";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminAuthPage from "./pages/SuperAdminAuthPage";
 import SuperAdmin1415Page from "./pages/SuperAdmin1415Page";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <SessionContextProvider>
           <Navbar />
           <Routes>
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/lessons" element={<LessonsPage />} />
               <Route path="/learners" element={<AddLearnerPage />} />
               <Route path="/learners/add" element={<AddLearnerPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
             {/* Super Admin Routes */}
             <Route path="/super-admin-dashboard" element={<SuperAdminDashboard />} />
