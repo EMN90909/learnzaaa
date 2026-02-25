@@ -29,7 +29,9 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
           showSuccess('Welcome back!');
           navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
-          // Clear session and user data
+          // Clear all local session data to prevent loops
+          localStorage.removeItem('learnerData');
+          sessionStorage.clear();
           setSession(null);
           setUser(null);
           showSuccess('You have been signed out.');
