@@ -100,14 +100,14 @@ const SuperAdminAuthPage: React.FC = () => {
 
   if (isBlocked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-        <Card className="w-full max-w-md border-red-200">
+      <div className="min-h-screen flex items-center justify-center bg-red-950 p-4">
+        <Card className="w-full max-w-md border-red-900 bg-red-950 text-white">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="h-8 w-8 text-red-600" />
+            <div className="w-16 h-16 bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="h-8 w-8 text-red-200" />
             </div>
-            <CardTitle className="text-red-800">Access Restricted</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-red-100">Access Restricted</CardTitle>
+            <CardDescription className="text-red-300">
               Too many failed attempts. This device has been restricted from accessing the Super Admin portal.
             </CardDescription>
           </CardHeader>
@@ -117,14 +117,14 @@ const SuperAdminAuthPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-blue-900 p-4">
-      <Card className="w-full max-w-md shadow-2xl border-slate-700 bg-white/95 backdrop-blur">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
+      <Card className="w-full max-w-md shadow-2xl border-slate-800 bg-slate-900 text-white">
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
             <ShieldCheck className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-slate-800">Learnzaa Super Admin</CardTitle>
-          <CardDescription className="text-slate-500">
+          <CardTitle className="text-2xl font-bold text-white">Learnzaa Super Admin</CardTitle>
+          <CardDescription className="text-slate-400">
             {step === 'key' ? 'Enter Security Key' : 'Verify Credentials'}
           </CardDescription>
         </CardHeader>
@@ -132,9 +132,9 @@ const SuperAdminAuthPage: React.FC = () => {
           {step === 'key' ? (
             <form onSubmit={handleKeySubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="key">4-Digit Security Key</Label>
+                <Label htmlFor="key" className="text-slate-300">4-Digit Security Key</Label>
                 <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                   <Input
                     id="key"
                     type="password"
@@ -142,7 +142,7 @@ const SuperAdminAuthPage: React.FC = () => {
                     maxLength={4}
                     value={keyInput}
                     onChange={(e) => setKeyInput(e.target.value)}
-                    className="pl-10 text-center text-2xl tracking-widest"
+                    className="pl-10 text-center text-2xl tracking-widest bg-slate-800 border-slate-700 text-white placeholder:text-slate-600"
                     required
                   />
                 </div>
@@ -154,31 +154,33 @@ const SuperAdminAuthPage: React.FC = () => {
           ) : (
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Admin Email</Label>
+                <Label htmlFor="email" className="text-slate-300">Admin Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="nasongoemmanuel8@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-600"
                   required
                   disabled={loading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-slate-300">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-600"
                   required
                   disabled={loading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pin">Admin PIN</Label>
+                <Label htmlFor="pin" className="text-slate-300">Admin PIN</Label>
                 <Input
                   id="pin"
                   type="password"
@@ -186,6 +188,7 @@ const SuperAdminAuthPage: React.FC = () => {
                   maxLength={4}
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-600"
                   required
                   disabled={loading}
                 />
@@ -206,7 +209,7 @@ const SuperAdminAuthPage: React.FC = () => {
               <Button 
                 type="button" 
                 variant="ghost" 
-                className="w-full text-slate-500 text-xs"
+                className="w-full text-slate-400 text-xs hover:text-white hover:bg-slate-800"
                 onClick={() => setStep('key')}
               >
                 Back to Key Entry
