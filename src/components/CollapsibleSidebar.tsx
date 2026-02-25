@@ -3,18 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Home, Users, ChevronLeft, ChevronRight, Plus, LogOut, CreditCard, Menu } from 'lucide-react';
+import { Home, Users, ChevronLeft, ChevronRight, Plus, LogOut, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { showSuccess } from '@/utils/toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const CollapsibleSidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, session } = useSession();
+  const { user } = useSession();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -28,16 +27,10 @@ const CollapsibleSidebar: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Logout error:', error);
-        // Don't show error to user, just redirect
-      }
-      // Redirect to home page after logout
+      await supabase.auth.signOut();
       window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      // Redirect to home page even if there's an error
       window.location.href = '/';
     }
   };
@@ -45,7 +38,6 @@ const CollapsibleSidebar: React.FC = () => {
   if (isMobile) {
     return (
       <>
-        {/* Mobile Menu Button */}
         <Button
           variant="ghost"
           size="icon"
@@ -55,7 +47,6 @@ const CollapsibleSidebar: React.FC = () => {
           <Menu className="h-5 w-5 text-blue-600" />
         </Button>
 
-        {/* Mobile Sidebar */}
         <div
           className={cn(
             "fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-in-out",
@@ -98,13 +89,6 @@ const CollapsibleSidebar: React.FC = () => {
                 <Link to="/learners/add" onClick={toggleMobileMenu}>
                   <Plus className="h-5 w-5 inline-block mr-2" />
                   Add Learner
-                </Link>
-              </Button>
-
-              <Button asChild variant="ghost" className="w-full justify-start text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent">
-                <Link to="/billing" onClick={toggleMobileMenu}>
-                  <CreditCard className="h-5 w-5 inline-block mr-2" />
-                  Billing
                 </Link>
               </Button>
             </nav>
@@ -183,13 +167,6 @@ const CollapsibleSidebar: React.FC = () => {
           <Link to="/learners/add">
             <Plus className="h-5 w-5 inline-block mr-2" />
             {isOpen && <span>Add Learner</span>}
-          </Link>
-        </Button>
-
-        <Button asChild variant="ghost" className="w-full justify-start text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent">
-          <Link to="/billing">
-            <CreditCard className="h-5 w-5 inline-block mr-2" />
-            {isOpen && <span>Billing</span>}
           </Link>
         </Button>
       </nav>
