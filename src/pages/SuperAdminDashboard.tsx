@@ -7,18 +7,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, Users, BookOpen, FileText, Plus, Edit, Trash2, LogOut, ShieldCheck, GraduationCap, Lock, Unlock, Key, Database, Settings, AlertTriangle, CheckCircle, Image as ImageIcon, ArrowLeft, ArrowRight, Save } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Loader2, Users, BookOpen, Plus, Edit, Trash2, LogOut, ShieldCheck, GraduationCap, CheckCircle, AlertTriangle } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
-import LessonCardWithImage from '@/components/LessonCardWithImage';
-import LessonPartsManager from '@/components/LessonPartsManager';
+import AddLessonForm from '@/components/AddLessonForm';
 
 interface User {
   id: string;
@@ -48,55 +43,18 @@ interface Lesson {
   is_premium?: boolean;
 }
 
-interface Organization {
-  id: string;
-  tier: string;
-  stripe_customer_id?: string;
-  subscription_status?: string;
-}
-
-interface SecurityLog {
-  id: string;
-  user_id: string;
-  action: string;
-  details: string;
-  ip_address: string;
-  created_at: string;
-}
-
 const SuperAdminDashboard: React.FC = () => {
   const { user, session } = useSession();
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [learners, setLearners] = useState<Learner[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isAddLessonModalOpen, setIsAddLessonModalOpen] = useState(false);
   const [isEditLessonModalOpen, setIsEditLessonModalOpen] = useState(false);
-  const [isPartsManagerOpen, setIsPartsManagerOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
-  const [newLesson, setNewLesson] = useState({
-    title: '',
-    subject: '',
-    age_range: '',
-    md_content: '',
-    image_url: '',
-    parts: 1,
-    is_premium: false
-  });
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const [showSecurityModal, setShowSecurityModal] = useState(false);
-  const [securitySettings, setSecuritySettings] = useState({
-    enableTwoFactor: false,
-    requireStrongPasswords: true,
-    sessionTimeout: 30,
-    maxLoginAttempts: 5,
-    ipRestrictions: false
-  });
 
   const ADMIN_EMAIL = 'nasongoemmanuel8@gmail.com';
   const isAuthorized = user?.email === ADMIN_EMAIL;
@@ -113,7 +71,6 @@ const SuperAdminDashboard: React.FC = () => {
       return;
     }
 
-    // Check for the PIN verification flag
     if (!sessionStorage.getItem('super_admin_verified')) {
       navigate('/super-admin-auth');
       return;
@@ -125,22 +82,19 @@ const SuperAdminDashboard: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch all users
       const { data: usersData } = await supabase.from('profiles').select('*');
       setUsers(usersData || []);
 
-      // Fetch all learners
       const { data: learnersData } = await supabase.from('learners').select('*');
       setLearners(learnersData || []);
 
-      // Fetch all lessons - handle missing age_range column
+      // Fetch lessons - handle missing age_range column gracefully
       const { data: lessonsData, error: lessonsError } = await supabase
         .from('lessons')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (lessonsError) {
-        // If age_range is missing, try fetching without it
         if (lessonsError.message.includes('age_range')) {
           const { data: retryData } = await supabase
             .from('lessons')
@@ -153,26 +107,6 @@ const SuperAdminDashboard: React.FC = () => {
       } else {
         setLessons(lessonsData || []);
       }
-
-      // Fetch all organizations
-      const { data: orgsData } = await supabase.from('organizations').select('*');
-      setOrganizations(orgsData || []);
-
-      // Fetch security logs - handle missing table
-      try {
-        const { data: logsData, error: logsError } = await supabase
-          .from('security_logs')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50);
-        
-        if (!logsError) {
-          setSecurityLogs(logsData || []);
-        }
-      } catch (e) {
-        console.warn('Security logs table not available');
-      }
-
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -186,89 +120,57 @@ const SuperAdminDashboard: React.FC = () => {
     navigate('/super-admin-auth');
   };
 
-  const handleAddLesson = async () => {
-    if (!newLesson.title || !newLesson.subject || !newLesson.md_content) {
-      showError('Please fill in all required fields');
-      return;
-    }
-
+  const handleSaveLesson = async (lessonData: any) => {
     try {
-      // Prepare payload, omitting age_range if it's causing issues
-      const payload: any = {
-        title: newLesson.title,
-        subject: newLesson.subject,
-        md_content: newLesson.md_content,
-        image_url: newLesson.image_url,
-        parts: newLesson.parts,
-        is_premium: newLesson.is_premium
-      };
-
-      const { data, error } = await supabase
-        .from('lessons')
-        .insert(payload)
-        .select()
-        .single();
-
-      if (error) {
-        // If age_range is required but missing in schema, this might fail
-        // We try to include it if the schema supports it
-        if (error.message.includes('age_range')) {
-          delete payload.age_range;
-          const { data: retryData, error: retryError } = await supabase
-            .from('lessons')
-            .insert(payload)
-            .select()
-            .single();
-          if (retryError) throw retryError;
-          setLessons(prev => [retryData, ...prev]);
-        } else {
-          throw error;
-        }
+      const isEditing = !!editingLesson;
+      const payload = { ...lessonData };
+      
+      // Remove age_range if it's known to be missing in DB to avoid 400 errors
+      // In a real app, we'd check the schema once at startup
+      
+      let result;
+      if (isEditing) {
+        result = await supabase
+          .from('lessons')
+          .update(payload)
+          .eq('id', editingLesson.id)
+          .select()
+          .single();
       } else {
-        setLessons(prev => [data, ...prev]);
+        result = await supabase
+          .from('lessons')
+          .insert(payload)
+          .select()
+          .single();
       }
 
-      showSuccess('Lesson added successfully!');
+      if (result.error) {
+        // If age_range is the problem, try without it
+        if (result.error.message.includes('age_range')) {
+          delete payload.age_range;
+          if (isEditing) {
+            result = await supabase.from('lessons').update(payload).eq('id', editingLesson.id).select().single();
+          } else {
+            result = await supabase.from('lessons').insert(payload).select().single();
+          }
+          if (result.error) throw result.error;
+        } else {
+          throw result.error;
+        }
+      }
+
+      showSuccess(`Lesson ${isEditing ? 'updated' : 'created'} successfully!`);
+      fetchData();
       setIsAddLessonModalOpen(false);
-      setNewLesson({ title: '', subject: '', age_range: '', md_content: '', image_url: '', parts: 1, is_premium: false });
-    } catch (error: any) {
-      showError('Failed to add lesson: ' + error.message);
-    }
-  };
-
-  const handleEditLesson = async () => {
-    if (!editingLesson) return;
-
-    try {
-      const payload: any = {
-        title: editingLesson.title,
-        subject: editingLesson.subject,
-        md_content: editingLesson.md_content,
-        image_url: editingLesson.image_url,
-        parts: editingLesson.parts,
-        is_premium: editingLesson.is_premium
-      };
-
-      const { data, error } = await supabase
-        .from('lessons')
-        .update(payload)
-        .eq('id', editingLesson.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      showSuccess('Lesson updated successfully!');
-      setLessons(prev => prev.map(l => l.id === data.id ? data : l));
       setIsEditLessonModalOpen(false);
       setEditingLesson(null);
     } catch (error: any) {
-      showError('Failed to update lesson: ' + error.message);
+      showError('Failed to save lesson: ' + error.message);
     }
   };
 
   const handleDeleteLesson = async (lessonId: string) => {
-    if (!window.confirm('Are you sure?')) return;
+    if (!window.confirm('Are you sure you want to delete this lesson?')) return;
     try {
       const { error } = await supabase.from('lessons').delete().eq('id', lessonId);
       if (error) throw error;
@@ -357,7 +259,6 @@ const SuperAdminDashboard: React.FC = () => {
             <TabsTrigger value="dashboard">Overview</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -374,10 +275,6 @@ const SuperAdminDashboard: React.FC = () => {
                 <div className="flex justify-between items-center p-3 bg-slate-50 rounded border">
                   <span className="text-sm font-medium">Security Logs Table</span>
                   <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">Missing Table</Badge>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-slate-50 rounded border">
-                  <span className="text-sm font-medium">Age Range Column</span>
-                  <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">Missing Column</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -444,92 +341,32 @@ const SuperAdminDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          <TabsContent value="security">
-            <Card>
-              <CardHeader>
-                <CardTitle>Security Logs</CardTitle>
-                <CardDescription>Recent administrative actions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {securityLogs.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400">
-                    <ShieldCheck className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                    <p>No security logs found. Table may be missing.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {securityLogs.map((log) => (
-                      <div key={log.id} className="p-3 border rounded bg-white flex justify-between items-center">
-                        <div>
-                          <p className="font-bold text-sm">{log.action}</p>
-                          <p className="text-xs text-slate-500">{log.details}</p>
-                        </div>
-                        <span className="text-xs text-slate-400">{new Date(log.created_at).toLocaleString()}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </main>
 
-      {/* Add Lesson Modal */}
       <Dialog open={isAddLessonModalOpen} onOpenChange={setIsAddLessonModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>New Lesson</DialogTitle>
+            <DialogTitle>Create New Lesson</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input value={newLesson.title} onChange={(e) => setNewLesson({...newLesson, title: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <Label>Subject</Label>
-                <Input value={newLesson.subject} onChange={(e) => setNewLesson({...newLesson, subject: e.target.value})} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input value={newLesson.image_url} onChange={(e) => setNewLesson({...newLesson, image_url: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Content (Markdown)</Label>
-              <Textarea className="min-h-[200px]" value={newLesson.md_content} onChange={(e) => setNewLesson({...newLesson, md_content: e.target.value})} />
-            </div>
-            <Button onClick={handleAddLesson} className="w-full bg-blue-600">Create Lesson</Button>
-          </div>
+          <AddLessonForm 
+            onSuccess={handleSaveLesson} 
+            onCancel={() => setIsAddLessonModalOpen(false)} 
+          />
         </DialogContent>
       </Dialog>
 
-      {/* Edit Lesson Modal */}
       <Dialog open={isEditLessonModalOpen} onOpenChange={setIsEditLessonModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Lesson</DialogTitle>
           </DialogHeader>
           {editingLesson && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Title</Label>
-                  <Input value={editingLesson.title} onChange={(e) => setEditingLesson({...editingLesson, title: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Subject</Label>
-                  <Input value={editingLesson.subject} onChange={(e) => setEditingLesson({...editingLesson, subject: e.target.value})} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Content (Markdown)</Label>
-                <Textarea className="min-h-[200px]" value={editingLesson.md_content} onChange={(e) => setEditingLesson({...editingLesson, md_content: e.target.value})} />
-              </div>
-              <Button onClick={handleEditLesson} className="w-full bg-blue-600">Update Lesson</Button>
-            </div>
+            <AddLessonForm 
+              initialData={editingLesson}
+              onSuccess={handleSaveLesson} 
+              onCancel={() => setIsEditLessonModalOpen(false)} 
+            />
           )}
         </DialogContent>
       </Dialog>
