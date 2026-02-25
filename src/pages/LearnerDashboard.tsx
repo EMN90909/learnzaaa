@@ -1,16 +1,15 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, BookOpen, CheckCircle, Clock, BarChart2, LogOut } from 'lucide-react';
+import { BookOpen, PlusCircle, ShoppingBag, LogOut, GraduationCap, Star, Award } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import LessonCard from '@/components/LessonCard';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface Learner {
   id: string;
@@ -20,39 +19,13 @@ interface Learner {
   org_id: string;
 }
 
-interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  category: string;
-  level: string;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ProgressData {
-  id: string;
-  learner_id: string;
-  lesson_id: string;
-  completed: boolean;
-  score: number;
-  updated_at: string;
-}
-
 const LearnerDashboard: React.FC = () => {
   const [learner, setLearner] = useState<Learner | null>(null);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [progressData, setProgressData] = useState<ProgressData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('lessons');
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [points, setPoints] = useState(0);
+  const [xp, setXp] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if learner is logged in
     const learnerData = localStorage.getItem('learnerData');
     if (!learnerData) {
       showError('Please login first');
@@ -62,35 +35,28 @@ const LearnerDashboard: React.FC = () => {
 
     const parsedLearner = JSON.parse(learnerData);
     setLearner(parsedLearner);
-    fetchData(parsedLearner.id);
+    fetchStats(parsedLearner.id);
   }, [navigate]);
 
-  const fetchData = async (learnerId: string) => {
-    setLoading(true);
+  const fetchStats = async (learnerId: string) => {
     try {
-      // Fetch all lessons
-      const { data: lessonsData, error: lessonsError } = await supabase
-        .from('lessons')
-        .select('*');
+      const { data: pointsData } = await supabase
+        .from('points_balance')
+        .select('points')
+        .eq('learner_id', learnerId)
+        .maybeSingle();
+      
+      if (pointsData) setPoints(pointsData.points);
 
-      if (lessonsError) throw lessonsError;
-      setLessons(lessonsData || []);
-
-      // Fetch progress for this learner
-      const { data: progressData, error: progressError } = await supabase
-        .from('progress')
-        .select('*')
-        .eq('learner_id', learnerId);
-
-      if (progressError) throw progressError;
-      setProgressData(progressData || []);
-
-      showSuccess('Dashboard loaded successfully!');
-    } catch (error: any) {
-      showError('Failed to load dashboard: ' + error.message);
-      console.error('Error loading dashboard:', error);
-    } finally {
-      setLoading(false);
+      const { data: xpData } = await supabase
+        .from('xp_balance')
+        .select('xp')
+        .eq('learner_id', learnerId)
+        .maybeSingle();
+      
+      if (xpData) setXp(xpData.xp);
+    } catch (err) {
+      console.error('Error fetching stats:', err);
     }
   };
 
@@ -100,272 +66,126 @@ const LearnerDashboard: React.FC = () => {
     navigate('/learner-auth');
   };
 
-  const handleViewDetails = (lessonId: string) => {
-    const lesson = lessons.find(l => l.id === lessonId);
-    if (lesson) {
-      setSelectedLesson(lesson);
-      setIsModalOpen(true);
+  if (!learner) return null;
+
+  const actionCards = [
+    {
+      title: "Learn",
+      description: "Explore interactive lessons and take fun quizzes.",
+      icon: <BookOpen className="h-12 w-12 text-blue-500" />,
+      color: "hover:border-blue-500 hover:bg-blue-50/50",
+      action: () => navigate('/learner-page'),
+      buttonText: "Start Learning",
+      buttonClass: "bg-blue-600 hover:bg-blue-700"
+    },
+    {
+      title: "Create",
+      description: "Build your own lessons and share your knowledge.",
+      icon: <PlusCircle className="h-12 w-12 text-green-500" />,
+      color: "hover:border-green-500 hover:bg-green-50/50",
+      action: () => window.location.href = 'https://create.learnzaa.top',
+      buttonText: "Go to Creator",
+      buttonClass: "bg-green-600 hover:bg-green-700"
+    },
+    {
+      title: "Marketplace",
+      description: "Discover and trade amazing learning resources.",
+      icon: <ShoppingBag className="h-12 w-12 text-purple-500" />,
+      color: "hover:border-purple-500 hover:bg-purple-50/50",
+      action: () => window.location.href = 'https://market.learnzaa.top',
+      buttonText: "Visit Market",
+      buttonClass: "bg-purple-600 hover:bg-purple-700"
     }
-  };
-
-  const getLessonProgress = (lessonId: string) => {
-    return progressData.find(p => p.lesson_id === lessonId);
-  };
-
-  const completedLessons = progressData.filter(p => p.completed).length;
-  const totalLessons = lessons.length;
-  const completionRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
-
-  const averageScore = progressData.length > 0
-    ? (progressData.reduce((sum, p) => sum + (p.score || 0), 0) / progressData.length).toFixed(1)
-    : 0;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!learner) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-center text-gray-600">Please login to access your dashboard</p>
-      </div>
-    );
-  }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-950 dark:to-slate-900 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">LearnZaa</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mt-1">
-              Welcome, {learner.name} ({learner.grade})
-            </p>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-600 p-3 rounded-2xl shadow-lg shadow-blue-200">
+              <GraduationCap className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white">Learnzaa</h1>
+              <p className="text-slate-500 font-medium">Welcome back, {learner.name}!</p>
+            </div>
           </div>
-          <div className="flex space-x-2">
-            <Button onClick={() => navigate('/learner-page')} className="bg-green-600 hover:bg-green-700 text-white">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Go to Learning Page
-            </Button>
-            <Button onClick={handleLogout} variant="outline" className="text-red-500 hover:text-red-600">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+
+          <div className="flex items-center gap-4">
+            <Card className="px-4 py-2 flex items-center gap-3 bg-white/80 backdrop-blur-sm border-none shadow-sm">
+              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+              <span className="font-bold text-slate-700">{points} 💎</span>
+            </Card>
+            <Card className="px-4 py-2 flex items-center gap-3 bg-white/80 backdrop-blur-sm border-none shadow-sm">
+              <Award className="h-5 w-5 text-purple-500" />
+              <span className="font-bold text-slate-700">{xp} XP</span>
+            </Card>
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="text-slate-400 hover:text-red-500">
+              <LogOut className="h-5 w-5" />
             </Button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Lessons</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalLessons}</div>
-              <p className="text-xs text-muted-foreground">Available learning materials</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedLessons}</div>
-              <Progress value={completionRate} className="mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">{completionRate.toFixed(1)}% completion</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Score</CardTitle>
-              <BarChart2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{averageScore}%</div>
-              <p className="text-xs text-muted-foreground">Your average performance</p>
-            </CardContent>
-          </Card>
+        {/* Main Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {actionCards.map((card, index) => (
+            <Card 
+              key={index} 
+              className={cn(
+                "group relative overflow-hidden border-2 border-transparent transition-all duration-300 cursor-pointer shadow-xl shadow-slate-200/50 dark:shadow-none",
+                card.color
+              )}
+              onClick={card.action}
+            >
+              <CardHeader className="pb-2">
+                <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                  {card.icon}
+                </div>
+                <CardTitle className="text-2xl font-black">{card.title}</CardTitle>
+                <CardDescription className="text-slate-500 font-medium">
+                  {card.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <Button className={cn("w-full font-bold rounded-xl", card.buttonClass)}>
+                  {card.buttonText}
+                </Button>
+              </CardContent>
+              {/* Decorative background element */}
+              <div className="absolute -right-4 -bottom-4 opacity-5 transform rotate-12 group-hover:opacity-10 transition-opacity">
+                {React.cloneElement(card.icon as React.ReactElement, { size: 120 })}
+              </div>
+            </Card>
+          ))}
         </div>
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid grid-cols-3 max-w-md">
-            <TabsTrigger value="lessons">My Lessons</TabsTrigger>
-            <TabsTrigger value="progress">My Progress</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="lessons">
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Available Lessons</h2>
-
-              {lessons.length === 0 ? (
-                <p className="text-center text-gray-600 dark:text-gray-400">No lessons available yet.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {lessons.map((lesson) => {
-                    const progress = getLessonProgress(lesson.id);
-                    return (
-                      <div key={lesson.id} className="space-y-2">
-                        <LessonCard lesson={lesson} onViewDetails={handleViewDetails} />
-                        {progress && (
-                          <div className="flex items-center gap-2">
-                            <Badge variant={progress.completed ? "default" : "secondary"}>
-                              {progress.completed ? "Completed" : "In Progress"}
-                            </Badge>
-                            {progress.score && (
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                Score: {progress.score}%
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+        {/* Quick Stats Footer */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-white/50 backdrop-blur-sm border-none shadow-sm p-6">
+            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Star className="h-4 w-4 text-yellow-500" /> Your Progress
+            </h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm font-bold text-slate-600">
+                <span>Level {Math.floor(xp / 500) + 1}</span>
+                <span>{xp % 500} / 500 XP</span>
+              </div>
+              <Progress value={(xp % 500) / 5} className="h-3 rounded-full" />
             </div>
-          </TabsContent>
-
-          <TabsContent value="progress">
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">My Learning Progress</h2>
-
-              {progressData.length === 0 ? (
-                <p className="text-center text-gray-600 dark:text-gray-400">
-                  You haven't started any lessons yet. Explore lessons to begin your learning journey!
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {progressData.map((progress) => {
-                    const lesson = lessons.find(l => l.id === progress.lesson_id);
-                    if (!lesson) return null;
-
-                    return (
-                      <Card key={progress.id}>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg">{lesson.title}</CardTitle>
-                          <CardDescription>{lesson.category}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Status</p>
-                              <Badge variant={progress.completed ? "default" : "secondary"} className="mt-1">
-                                {progress.completed ? "Completed" : "In Progress"}
-                              </Badge>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Score</p>
-                              <p className="text-2xl font-bold mt-1">{progress.score}%</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Last Updated</p>
-                              <p className="text-sm mt-1">
-                                {new Date(progress.updated_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <Progress
-                            value={progress.completed ? 100 : (progress.score || 0)}
-                            className="mt-4"
-                          />
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+          </Card>
+          
+          <Card className="bg-white/50 backdrop-blur-sm border-none shadow-sm p-6 flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-slate-800">Daily Streak</h3>
+              <p className="text-sm text-slate-500 font-medium">Keep learning to grow your streak!</p>
             </div>
-          </TabsContent>
-
-          <TabsContent value="activity">
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Recent Activity</h2>
-
-              {progressData.length === 0 ? (
-                <p className="text-center text-gray-600 dark:text-gray-400">
-                  No recent activity. Start learning to see your progress here!
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {[...progressData]
-                    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-                    .map((progress) => {
-                      const lesson = lessons.find(l => l.id === progress.lesson_id);
-                      if (!lesson) return null;
-
-                      return (
-                        <Card key={progress.id}>
-                          <CardContent className="p-4">
-                            <div className="flex items-start space-x-4">
-                              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                                <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-300" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h3 className="font-semibold">{lesson.title}</h3>
-                                    <p className="text-sm text-muted-foreground">{lesson.category}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <Badge variant={progress.completed ? "default" : "outline"}>
-                                      {progress.completed ? "Completed" : "In Progress"}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <div className="flex justify-between items-center mt-2">
-                                  <div className="flex items-center space-x-2">
-                                    <Clock className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(progress.updated_at).toLocaleString()}
-                                    </span>
-                                  </div>
-                                  {progress.score && (
-                                    <div className="flex items-center space-x-2">
-                                      <BarChart2 className="h-3 w-3 text-muted-foreground" />
-                                      <span className="text-xs font-medium">{progress.score}%</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                </div>
-              )}
+            <div className="text-3xl font-black text-orange-500 flex items-center gap-2">
+              🔥 1
             </div>
-          </TabsContent>
-        </Tabs>
-
-        {/* Lesson Detail Modal */}
-        {selectedLesson && (
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
-              <DialogHeader>
-                <DialogTitle>{selectedLesson.title}</DialogTitle>
-                <DialogDescription>{selectedLesson.description}</DialogDescription>
-              </DialogHeader>
-              <ScrollArea className="flex-grow pr-4">
-                <div className="prose dark:prose-invert max-w-none">
-                  <p>{selectedLesson.content}</p>
-                </div>
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
-        )}
+          </Card>
+        </div>
       </div>
     </div>
   );
