@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { BookOpen, PlusCircle, ShoppingBag, LogOut, GraduationCap, Star, Award } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -80,19 +79,19 @@ const LearnerDashboard: React.FC = () => {
     },
     {
       title: "Create",
-      description: "Build your own lessons and share your knowledge.",
+      description: "Build your own websites and apps with visual blocks.",
       icon: <PlusCircle className="h-12 w-12 text-green-500" />,
       color: "hover:border-green-500 hover:bg-green-50/50",
-      action: () => window.location.href = 'https://create.learnzaa.top',
-      buttonText: "Go to Creator",
+      action: () => navigate('/builder'),
+      buttonText: "Open Builder",
       buttonClass: "bg-green-600 hover:bg-green-700"
     },
     {
       title: "Marketplace",
-      description: "Discover and trade amazing learning resources.",
+      description: "Share your projects and trade them for gems!",
       icon: <ShoppingBag className="h-12 w-12 text-purple-500" />,
       color: "hover:border-purple-500 hover:bg-purple-50/50",
-      action: () => window.location.href = 'https://market.learnzaa.top',
+      action: () => navigate('/marketplace'),
       buttonText: "Visit Market",
       buttonClass: "bg-purple-600 hover:bg-purple-700"
     }
