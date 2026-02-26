@@ -2,23 +2,28 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserPlus, BookOpen, Award } from 'lucide-react';
+import { UserPlus, Microscope, Code, Trophy, FlaskConical, Cpu, Beaker, Star } from 'lucide-react';
 
 const steps = [
   {
     icon: <UserPlus className="w-8 h-8 text-blue-600" />,
     title: "Step 1: Sign Up",
-    description: "Parent signs up and adds learners to the platform."
+    description: "Parent or educator creates an account and adds STEM learners."
   },
   {
-    icon: <BookOpen className="w-8 h-8 text-green-600" />,
-    title: "Step 2: Start Learning",
-    description: "Learner starts lessons, reads content and takes quizzes."
+    icon: <Microscope className="w-8 h-8 text-purple-600" />,
+    title: "Step 2: Explore STEM",
+    description: "Choose from engineering, tech, chemistry, physics, math, and more."
   },
   {
-    icon: <Award className="w-8 h-8 text-yellow-600" />,
-    title: "Step 3: Earn & Progress",
-    description: "Earn points, unlock hints and parent monitors progress."
+    icon: <Code className="w-8 h-8 text-green-600" />,
+    title: "Step 3: Build & Create",
+    description: "Complete interactive lessons, coding challenges, and hands-on projects."
+  },
+  {
+    icon: <Trophy className="w-8 h-8 text-yellow-600" />,
+    title: "Step 4: Earn & Progress",
+    description: "Gain points, unlock achievements, and track STEM skill development."
   }
 ];
 
@@ -28,7 +33,7 @@ const HowItWorksSection: React.FC = () => {
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-gray-100">How It Works</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
               <CardHeader className="text-center">

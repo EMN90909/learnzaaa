@@ -13,7 +13,7 @@ const TermsPage: React.FC = () => {
             <span className="text-blue-600 dark:text-blue-400">Terms of Service</span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Please read these terms carefully before using Learnzaa
+            Please read these terms carefully before using Learnzaa STEM
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             Last updated: January 9, 2026
@@ -29,13 +29,13 @@ const TermsPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Welcome to Learnzaa! These Terms of Service ("Terms") govern your access to and use of our platform, including our website, mobile applications, and related services.
+                Welcome to Learnzaa STEM! These Terms of Service ("Terms") govern your access to and use of our STEM education platform, including our website, mobile applications, and related services.
               </p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 By accessing or using Learnzaa, you agree to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, you may not use our platform.
               </p>
               <p className="text-gray-700 dark:text-gray-300">
-                Learnzaa is designed for educational purposes and is intended for use by parents, guardians, educators, and learners.
+                Learnzaa STEM is designed for educational purposes and is intended for use by parents, guardians, educators, and learners interested in science, technology, engineering, and mathematics.
               </p>
             </CardContent>
           </Card>
@@ -49,7 +49,7 @@ const TermsPage: React.FC = () => {
             <CardContent>
               <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Eligibility</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                To use Learnzaa, you must:
+                To use Learnzaa STEM, you must:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
                 <li>Be at least 18 years old to create a parent/educator account</li>
@@ -79,7 +79,7 @@ const TermsPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                When using Learnzaa, you agree to:
+                When using Learnzaa STEM, you agree to:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
                 <li>Use the platform only for lawful purposes</li>
@@ -115,7 +115,7 @@ const TermsPage: React.FC = () => {
             <CardContent>
               <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Subscription Plans</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Learnzaa offers both free and premium subscription plans. By subscribing to a premium plan, you agree to:
+                Learnzaa STEM offers both free and premium subscription plans. By subscribing to a premium plan, you agree to:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
                 <li>Pay the applicable fees for the selected plan</li>
@@ -137,7 +137,7 @@ const TermsPage: React.FC = () => {
                 <li>No refunds for partial subscription periods</li>
                 <li>Refund requests must be made within 14 days of purchase</li>
                 <li>Refunds are at our sole discretion</li>
-                <li>Contact support@learnzaa.com for refund requests</li>
+                <li>Contact info@emtra.top for refund requests</li>
               </ul>
             </CardContent>
           </Card>
@@ -150,7 +150,7 @@ const TermsPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                All content on Learnzaa, including text, graphics, logos, images, and software, is the property of Learnzaa or its licensors and is protected by copyright and other intellectual property laws.
+                All content on Learnzaa STEM, including text, graphics, logos, images, and software, is the property of Learnzaa or its licensors and is protected by copyright and other intellectual property laws.
               </p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 You may not:
@@ -175,7 +175,7 @@ const TermsPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                We may terminate or suspend your account and access to Learnzaa at our sole discretion, without notice, for any reason, including:
+                We may terminate or suspend your account and access to Learnzaa STEM at our sole discretion, without notice, for any reason, including:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
                 <li>Violation of these Terms</li>
@@ -202,18 +202,18 @@ const TermsPage: React.FC = () => {
             <CardContent>
               <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Disclaimer of Warranties</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Learnzaa is provided on an "as is" and "as available" basis. We make no representations or warranties of any kind, express or implied, including:
+                Learnzaa STEM is provided on an "as is" and "as available" basis. We make no representations or warranties of any kind, express or implied, including:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
                 <li>Warranties of merchantability or fitness for a particular purpose</li>
                 <li>Warranties that the platform will be uninterrupted or error-free</li>
                 <li>Warranties that the platform is free of viruses or harmful components</li>
-                <li>Warranties regarding the accuracy or completeness of content</li>
+                <li>Warranties regarding the accuracy or completeness of STEM content</li>
               </ul>
 
               <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Limitation of Liability</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                To the fullest extent permitted by law, Learnzaa shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:
+                To the fullest extent permitted by law, Learnzaa STEM shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
                 <li>Loss of profits, revenue, or data</li>
@@ -235,7 +235,7 @@ const TermsPage: React.FC = () => {
                 We may modify these Terms from time to time. We will notify you of any significant changes by posting the new Terms on our platform and updating the "Last updated" date at the top of this document.
               </p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Your continued use of Learnzaa after any changes constitutes your acceptance of the new Terms. If you do not agree to the changes, you must stop using the platform.
+                Your continued use of Learnzaa STEM after any changes constitutes your acceptance of the new Terms. If you do not agree to the changes, you must stop using the platform.
               </p>
               <p className="text-gray-700 dark:text-gray-300">
                 We encourage you to review these Terms periodically to stay informed about your rights and obligations.
@@ -254,7 +254,7 @@ const TermsPage: React.FC = () => {
                 These Terms shall be governed by and construed in accordance with the laws of Kenya, without regard to its conflict of law principles.
               </p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Any disputes arising from or relating to these Terms or your use of Learnzaa shall be resolved through good faith negotiations. If we cannot resolve the dispute amicably, it shall be submitted to the courts of Nairobi, Kenya.
+                Any disputes arising from or relating to these Terms or your use of Learnzaa STEM shall be resolved through good faith negotiations. If we cannot resolve the dispute amicably, it shall be submitted to the courts of Nairobi, Kenya.
               </p>
               <p className="text-gray-700 dark:text-gray-300">
                 The United Nations Convention on Contracts for the International Sale of Goods shall not apply to these Terms.
@@ -273,11 +273,11 @@ const TermsPage: React.FC = () => {
                 If you have any questions about these Terms or our platform, please contact us:
               </p>
               <div className="space-y-2 text-gray-600 dark:text-gray-400">
-                <p>Email: support@learnzaa.com</p>
-                <p>Address: Learnzaa, Nairobi, Kenya</p>
+                <p>Email: info@emtra.top</p>
+                <p>Address: Learnzaa STEM, Nairobi, Kenya</p>
               </div>
               <p className="text-gray-700 dark:text-gray-300 mt-4">
-                For legal inquiries, please contact our legal team at legal@learnzaa.com.
+                For legal inquiries, please contact our legal team at info@emtra.top.
               </p>
             </CardContent>
           </Card>
@@ -285,7 +285,7 @@ const TermsPage: React.FC = () => {
 
         <div className="mt-12 text-center">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Thank you for choosing Learnzaa. We are committed to providing a safe, engaging, and effective learning platform.
+            Thank you for choosing Learnzaa STEM. We are committed to providing a safe, engaging, and effective STEM learning platform.
           </p>
           <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
             <Link to="/">Back to Home</Link>

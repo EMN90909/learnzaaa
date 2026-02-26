@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Twitter, Facebook } from 'lucide-react';
+import { Instagram, Twitter } from 'lucide-react';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 
 const FooterSection: React.FC = () => {
@@ -11,8 +11,8 @@ const FooterSection: React.FC = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="text-xl font-bold mb-4 text-blue-400">Learnzaa</h3>
-            <p className="text-gray-400">Making learning fun and interactive for kids in Kenya and beyond.</p>
+            <h3 className="text-xl font-bold mb-4 text-blue-400">Learnzaa STEM</h3>
+            <p className="text-gray-400">Empowering the next generation of scientists, engineers, and innovators through quality STEM education.</p>
           </div>
 
           <div>
@@ -20,7 +20,7 @@ const FooterSection: React.FC = () => {
             <ul className="space-y-2">
               <li><Link to="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
               <li><Link to="/auth" className="text-gray-400 hover:text-white transition-colors">Sign Up</Link></li>
-              <li><Link to="/lessons" className="text-gray-400 hover:text-white transition-colors">Lessons</Link></li>
+              <li><Link to="/lessons" className="text-gray-400 hover:text-white transition-colors">STEM Lessons</Link></li>
               <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">About</Link></li>
             </ul>
           </div>
@@ -37,21 +37,18 @@ const FooterSection: React.FC = () => {
           <div>
             <h4 className="font-semibold mb-4">Connect With Us</h4>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://www.instagram.com/emtra_co" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <Instagram className="w-6 h-6" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://search.brave.com/images?q=X+%28social+network%29&context=W3sic3JjIjoiaHR0cHM6Ly91cGxvYWQud2lraW1lZGlhLm9yZy93aWtpcGVkaWEvY29tbW9ucy90aHVtYi9jL2NlL1hfbG9nb18yMDIzLnN2Zy8yNTBweC1YX2xvZ29fMjAyMy5zdmcucG5nIiwidGV4dCI6IlggbG9nbyAyMDIzIiwicGFnZV91cmwiOiJodHRwczovL2VuLndpa2lwZWRpYS5vcmcvd2lraS9Ud2l0dGVyIn1d&sig=81c8455b9029b2d9d74f7cc05af02ef4eac20cfeefed68daf34cd547d60b67a3&nonce=2cc07c9496c249233e3ace50ac342198&source=infoboxImg" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <Twitter className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Facebook className="w-6 h-6" />
               </a>
             </div>
           </div>
         </div>
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm mb-4 md:mb-0">© 2026 Learnzaa. All rights reserved.</p>
+          <p className="text-gray-400 text-sm mb-4 md:mb-0">© 2026 Learnzaa STEM. All rights reserved.</p>
           <MadeWithDyad />
         </div>
       </div>

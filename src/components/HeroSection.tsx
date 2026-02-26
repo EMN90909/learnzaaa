@@ -3,7 +3,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { BookOpen, Rocket, Star, Users } from 'lucide-react';
+import { BookOpen, Rocket, Star, Users, Microscope, Calculator, Atom, Cpu } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
   return (
@@ -11,35 +11,42 @@ const HeroSection: React.FC = () => {
       <div className="container mx-auto max-w-4xl">
         <div className="mb-8">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
-            <span className="text-blue-600 dark:text-blue-400">Learnzaa</span> – Fun Learning for Kids
+            <span className="text-blue-600 dark:text-blue-400">Learnzaa</span> – STEM Learning for Future Innovators
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Interactive lessons, quizzes, points & rewards
+            Explore Engineering, Technology, Chemistry, Physics, Math & Computer Science
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
-          <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 btn-statement">
-            <Link to="/auth">Sign Up / Start Free Trial</Link>
+          <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105">
+            <Link to="/auth">Start Free Trial</Link>
           </Button>
-          <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 btn-statement">
-            <Link to="#features">Learn More</Link>
+          <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105">
+            <Link to="#features">Explore STEM</Link>
           </Button>
         </div>
 
-        <div className="flex justify-center">
-          <div className="relative">
-            <div className="w-64 h-64 bg-gradient-to-br from-blue-200 to-green-200 rounded-full flex items-center justify-center shadow-lg">
-              <div className="text-center">
-                <div className="flex justify-center space-x-4 mb-4">
-                  <BookOpen className="w-8 h-8 text-blue-600" />
-                  <Rocket className="w-8 h-8 text-green-600" />
-                  <Star className="w-8 h-8 text-yellow-500" />
-                  <Users className="w-8 h-8 text-purple-600" />
-                </div>
-                <p className="text-lg font-semibold text-gray-800">Learning Made Fun!</p>
-              </div>
-            </div>
+        <div className="flex justify-center gap-8 flex-wrap">
+          <div className="flex flex-col items-center">
+            <Microscope className="w-12 h-12 text-purple-600 mb-2" />
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Chemistry</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Calculator className="w-12 h-12 text-blue-600 mb-2" />
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Math</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Atom className="w-12 h-12 text-red-600 mb-2" />
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Physics</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Cpu className="w-12 h-12 text-green-600 mb-2" />
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Computer Science</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Rocket className="w-12 h-12 text-orange-600 mb-2" />
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Engineering</span>
           </div>
         </div>
       </div>
