@@ -23,8 +23,6 @@ import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminAuthPage from "./pages/SuperAdminAuthPage";
 import SuperAdmin1415Page from "./pages/SuperAdmin1415Page";
 import SettingsPage from "./pages/SettingsPage";
-import MarketplacePage from "./pages/MarketplacePage";
-import BuilderPage from "./pages/BuilderPage";
 
 const queryClient = new QueryClient();
 
@@ -55,8 +53,6 @@ const App = () => (
             {/* Learner Dashboard Route */}
             <Route path="/learner-dashboard" element={<LearnerDashboard />} />
             <Route path="/learner-page" element={<LearnerPage />} />
-            <Route path="/marketplace" element={<MarketplacePage />} />
-            <Route path="/builder" element={<BuilderPage />} />
             {/* Public Pages */}
             <Route path="/about" element={<AboutPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />

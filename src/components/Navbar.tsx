@@ -47,7 +47,7 @@ const Navbar: React.FC = () => {
         onClick={handleLogoClick}
         className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
       >
-        Learnzaa STEM
+        Learnzaa
       </button>
       <div className="flex items-center space-x-4">
         {session ? (

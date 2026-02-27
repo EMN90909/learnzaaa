@@ -29,7 +29,7 @@ const PrivacyPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Learnzaa STEM ("we", "our", "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our STEM education platform.
+                Learnzaa ("we", "our", "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
               </p>
               <p className="text-gray-700 dark:text-gray-300">
                 By using Learnzaa, you consent to the data practices described in this policy.
@@ -64,7 +64,7 @@ const PrivacyPage: React.FC = () => {
                 <li>IP address and device information</li>
                 <li>Browser type and version</li>
                 <li>Pages visited and time spent</li>
-                <li>STEM learning progress and activity</li>
+                <li>Learning progress and activity</li>
               </ul>
             </CardContent>
           </Card>
@@ -80,11 +80,11 @@ const PrivacyPage: React.FC = () => {
                 We use the information we collect for various purposes, including:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
-                <li>Providing and maintaining our STEM education platform</li>
+                <li>Providing and maintaining our platform</li>
                 <li>Personalizing your learning experience</li>
                 <li>Processing payments and managing subscriptions</li>
-                <li>Tracking STEM skill development and providing feedback</li>
-                <li>Improving our services and developing new STEM content</li>
+                <li>Tracking learning progress and providing feedback</li>
+                <li>Improving our services and developing new features</li>
                 <li>Communicating with you about your account and updates</li>
                 <li>Ensuring the security of our platform</li>
                 <li>Complying with legal obligations</li>
@@ -122,7 +122,7 @@ const PrivacyPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Learnzaa STEM is designed for children's education, and we take children's privacy very seriously.
+                Learnzaa is designed for children's education, and we take children's privacy very seriously.
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
                 <li>Children under 13 can only use Learnzaa with parental consent</li>
@@ -195,7 +195,7 @@ const PrivacyPage: React.FC = () => {
                 We retain your personal information for as long as necessary to fulfill the purposes for which it was collected, including:
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
-                <li>Providing our STEM education services to you</li>
+                <li>Providing our services to you</li>
                 <li>Complying with legal obligations</li>
                 <li>Resolving disputes</li>
                 <li>Enforcing our agreements</li>
@@ -234,11 +234,11 @@ const PrivacyPage: React.FC = () => {
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <div className="space-y-2 text-gray-600 dark:text-gray-400">
-                <p>Email: info@emtra.top</p>
-                <p>Address: Learnzaa STEM, Nairobi, Kenya</p>
+                <p>Email: privacy@learnzaa.com</p>
+                <p>Address: Learnzaa, Nairobi, Kenya</p>
               </div>
               <p className="text-gray-700 dark:text-gray-300 mt-4">
-                For privacy-related concerns, you may also contact our Data Protection Officer at info@emtra.top.
+                For privacy-related concerns, you may also contact our Data Protection Officer at dpo@learnzaa.com.
               </p>
             </CardContent>
           </Card>
@@ -246,7 +246,7 @@ const PrivacyPage: React.FC = () => {
 
         <div className="mt-12 text-center">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Thank you for trusting Learnzaa STEM with your information. We are committed to protecting your privacy and providing a safe learning environment.
+            Thank you for trusting Learnzaa with your information. We are committed to protecting your privacy and providing a safe learning environment.
           </p>
           <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
             <Link to="/">Back to Home</Link>
