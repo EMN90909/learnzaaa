@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, AlertTriangle, Plus, Users, BookOpen, Star, Microscope, Code, Atom, Cpu } from 'lucide-react';
+import { Loader2, AlertTriangle, Plus, Users, BookOpen, Star, Microscope, Code, Atom, Cpu, Calculator } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import CollapsibleSidebar from '@/components/CollapsibleSidebar';
 import LearnersTable from '@/components/LearnersTable';

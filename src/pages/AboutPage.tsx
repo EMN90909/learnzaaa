@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Users, Globe, Heart, Microscope, Code, Atom, Cpu } from 'lucide-react';
+import { BookOpen, Users, Globe, Heart, Microscope, Code, Atom, Cpu, Calculator } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AboutPage: React.FC = () => {
@@ -12,7 +12,7 @@ const AboutPage: React.FC = () => {
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
             <span className="text-blue-600 dark:text-blue-400">About Learnzaa STEM</span>
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300">
             Transforming STEM education for the next generation of innovators
           </p>
         </div>
@@ -143,7 +143,7 @@ const AboutPage: React.FC = () => {
 
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Join Our STEM Mission</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
             Be part of the STEM education revolution. Whether you're a parent, teacher, or student, you can help us make science, technology, engineering, and mathematics more engaging and accessible.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">

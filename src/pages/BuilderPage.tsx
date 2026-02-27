@@ -1,15 +1,18 @@
-"use client";
-
 import React, { useState } from 'react';
-import BuilderDashboard from '../components/builder/BuilderDashboard';
 import BuilderHeader from '../components/builder/BuilderHeader';
 import LeftPane from '../components/builder/LeftPane';
 import MiddlePane from '../components/builder/MiddlePane';
-import RightPane from '../components/builder/RightPane';
+import Canvas from './Canvas';
 
 const BuilderPage: React.FC = () => {
   const [view, setView] = useState<'dashboard' | 'editor'>('dashboard');
   const [activeProject, setActiveProject] = useState<string | null>(null);
+  const [isPreview, setIsPreview] = useState(false);
+  const [blocks, setBlocks] = useState<any[]>([
+    { id: '1', type: 'heading', content: 'Welcome to My Website!', style: { textAlign: 'center', fontSize: '2.5rem' } },
+    { id: '2', type: 'text', content: 'I built this using the Learnzaa Block Builder. It is super easy and fun!', style: { textAlign: 'center' } }
+  ]);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
 
   const handleCreateProject = (name: string) => {
     setActiveProject(name);
@@ -21,16 +24,11 @@ const BuilderPage: React.FC = () => {
     setView('editor');
   };
 
-  if (view === 'dashboard') {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-        <BuilderDashboard 
-          onCreateProject={handleCreateProject} 
-          onOpenProject={handleOpenProject} 
-        />
-      </div>
-    );
-  }
+  const handleBlockSelect = (id: string) => {
+    setSelectedBlockId(id);
+  };
+
+  const selectedBlock = blocks.find(b => b.id === selectedBlockId);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-white dark:bg-slate-950">
@@ -42,7 +40,15 @@ const BuilderPage: React.FC = () => {
       <div className="flex-1 flex overflow-hidden">
         <LeftPane />
         <MiddlePane />
-        <RightPane />
+        <div className="flex-1">
+          <Canvas 
+            blocks={blocks} 
+            setBlocks={setBlocks} 
+            selectedBlockId={selectedBlockId} 
+            onBlockSelect={handleBlockSelect} 
+            isPreview={isPreview} 
+          />
+        </div>
       </div>
     </div>
   );

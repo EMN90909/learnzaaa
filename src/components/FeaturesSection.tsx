@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Microscope, Calculator, Atom, Cpu, Rocket, Beaker, Code, Gauge, FlaskConical, Binary, Network, Cables } from 'lucide-react';
+import { Microscope, Calculator, Atom, Cpu, Rocket, Beaker, Code, Gauge, FlaskConical, Binary, Network, Cable } from 'lucide-react';
 
 const features = [
   {
@@ -61,7 +61,7 @@ const features = [
     description: "Explore how devices communicate and connect in the modern world."
   },
   {
-    icon: <Cables className="w-8 h-8 text-amber-600" />,
+    icon: <Cable className="w-8 h-8 text-amber-600" />,
     title: "Electronics Basics",
     description: "Introduction to circuits, components, and electronic systems."
   }

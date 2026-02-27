@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface Block {
   id: string;
@@ -49,7 +51,7 @@ const Canvas: React.FC<{
 
   // Handle drag enter/leave to highlight drop target
   const handleDragEnter = (e: React.DragEvent, id: string) => {
-    if (e.currentTarget.id !== targetId) {
+    if (e.currentTarget.id !== `block-${id}`) {
       e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
     }
   };
