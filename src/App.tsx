@@ -4,7 +4,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
 import LessonsPage from './pages/LessonsPage';
-import './index.css';
+import './globals.css'; // Import the correct CSS file
 
 function App() {
   return (
