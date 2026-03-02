@@ -351,7 +351,7 @@ const ContactPage: React.FC = () => {
             <a href="#" className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors">
               <Instagram className="w-6 h-6" />
             </a>
-            <a href="#" className="w-12 h-12 bg-blue-400 hover:bg-blue-500 rounded-full flex items-center justify-center text-white transition-colors">
+            <a href="https://instagram.com/e_rr.or404" className="w-12 h-12 bg-blue-400 hover:bg-blue-500 rounded-full flex items-center justify-center text-white transition-colors">
               <Twitter className="w-6 h-6" />
             </a>
             <a href="#" className="w-12 h-12 bg-blue-800 hover:bg-blue-900 rounded-full flex items-center justify-center text-white transition-colors">
