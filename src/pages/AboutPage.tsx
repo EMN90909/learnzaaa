@@ -115,7 +115,7 @@ const AboutPage: React.FC = () => {
                   <span className="text-white text-3xl font-bold">L</span>
                 </div>
                 <h3 className="text-xl font-bold mb-1">Learnzaa Founder</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">15-year-old Developer & Educator</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">EMN a Developer & Educator</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   A passionate young developer who believes in the power of technology to transform education in Kenya.
                 </p>
