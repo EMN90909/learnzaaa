@@ -3,14 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/integrations/supabase/supabaseContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Home, BookOpen, User, GraduationCap, Menu, ShieldCheck } from 'lucide-react';
+import { LogOut, Home, User, GraduationCap } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar: React.FC = () => {
   const { session, loading } = useSession();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -29,37 +27,30 @@ const Navbar: React.FC = () => {
     }
   };
 
-  // Check if learner is logged in
   const isLearnerLoggedIn = localStorage.getItem('learnerData') !== null;
 
-  // Hide navbar for learner pages
-  if (isLearnerLoggedIn) {
-    return null;
-  }
-
-  if (loading) {
-    return null;
-  }
+  if (isLearnerLoggedIn) return null;
+  if (loading) return null;
 
   return (
-    <nav className="bg-background shadow-none p-4 flex justify-between items-center">
+    <nav className="bg-background dark:bg-black border-b border-border p-4 flex justify-between items-center sticky top-0 z-50">
       <button
         onClick={handleLogoClick}
         className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
       >
-        Learnzaa
+        Learnzaaac
       </button>
       <div className="flex items-center space-x-4">
         {session ? (
           <>
-            <Button asChild variant="ghost" className="text-foreground hover:text-primary">
+            <Button asChild variant="ghost" className="text-foreground dark:text-white hover:text-primary">
               <Link to="/dashboard">
                 <Home className="h-4 w-4 inline-block mr-2" />
                 Dashboard
               </Link>
             </Button>
-            <Button asChild variant="ghost" className="text-foreground hover:text-primary">
-              <Link to="/learners">
+            <Button asChild variant="ghost" className="text-foreground dark:text-white hover:text-primary">
+              <Link to="/learners-dashboard">
                 <User className="h-4 w-4 inline-block mr-2" />
                 Learners
               </Link>
@@ -75,7 +66,7 @@ const Navbar: React.FC = () => {
           </>
         ) : (
           <>
-            <Button asChild variant="ghost" className="text-foreground hover:text-primary">
+            <Button asChild variant="ghost" className="text-foreground dark:text-white hover:text-primary">
               <Link to="/auth">Admin Login</Link>
             </Button>
             <Button asChild className="bg-green-600 hover:bg-green-700 text-white">

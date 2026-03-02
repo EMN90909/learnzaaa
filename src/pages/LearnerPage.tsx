@@ -5,399 +5,197 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, BookOpen, Star, Award, Upload, LogOut, Menu, CheckCircle, Lightbulb, Copy, Check, Trophy } from 'lucide-react';
+import { Loader2, BookOpen, Star, Award, LogOut, ChevronLeft, ChevronRight, Home, Trophy } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import HomeworkUpload from '@/components/HomeworkUpload';
-import { File as FilePdf, Image as ImageIcon, FileText } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import ResultsSummary from '@/components/ResultsSummary';
 import Leaderboard from '@/components/Leaderboard';
 import MonthlyWinnerCard from '@/components/MonthlyWinnerCard';
-
-interface Learner {
-  id: string;
-  name: string;
-  username: string;
-  dob: string;
-  grade: string;
-  org_id: string;
-}
-
-interface Lesson {
-  id: string;
-  title: string;
-  subject: string;
-  age_range: string;
-  md_content: string;
-  image_url?: string;
-  is_premium?: boolean;
-}
-
-interface Quiz {
-  id: string;
-  lesson_id: string;
-  question: string;
-  options: string[];
-  correct_index: number;
-  points_reward: number;
-  reveal_cost: number;
-}
-
-interface ProgressData {
-  id: string;
-  learner_id: string;
-  lesson_id: string;
-  completed: boolean;
-  score: number;
-  updated_at: string;
-}
-
-interface PointsBalance {
-  id: string;
-  learner_id: string;
-  points: number;
-}
-
-interface XPBalance {
-  id: string;
-  learner_id: string;
-  xp: number;
-}
-
-interface Homework {
-  id: string;
-  learner_id: string;
-  lesson_id: string;
-  file_url: string;
-  status: string;
-  review_notes: string;
-  uploaded_at: string;
-}
+import AdUnit from '@/components/AdUnit';
 
 const LearnerPage: React.FC = () => {
-  const [learner, setLearner] = useState<Learner | null>(null);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [progressData, setProgressData] = useState<ProgressData[]>([]);
-  const [pointsBalance, setPointsBalance] = useState<PointsBalance | null>(null);
-  const [xpBalance, setXpBalance] = useState<XPBalance | null>(null);
-  const [homework, setHomework] = useState<Homework[]>([]);
+  const [learner, setLearner] = useState<any>(null);
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [progressData, setProgressData] = useState<any[]>([]);
+  const [pointsBalance, setPointsBalance] = useState<any>(null);
+  const [xpBalance, setXpBalance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('lessons');
-  const [ageGroup, setAgeGroup] = useState<'young' | 'middle' | 'older'>('middle');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
-  const [quizAttempts, setQuizAttempts] = useState<{quizId: string, chosenIndex: number, correct: boolean}[]>([]);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
   const [showResultsSummary, setShowResultsSummary] = useState(false);
-  const [resultsSummaryData, setResultsSummaryData] = useState<{
-    lessonId?: string;
-    quizId?: string;
-    score: number;
-    totalPoints: number;
-    taskType: 'lesson' | 'quiz' | 'homework';
-  } | null>(null);
+  const [resultsSummaryData, setResultsSummaryData] = useState<any>(null);
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-
-  const calculateAgeGroup = (dob: string): 'young' | 'middle' | 'older' => {
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    if (today.getMonth() < birthDate.getMonth() || (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    if (age >= 7 && age <= 9) return 'young';
-    if (age >= 10 && age <= 12) return 'middle';
-    return 'older';
-  };
-
-  const getAgeGroupStyles = () => {
-    switch (ageGroup) {
-      case 'young':
-        return { buttonText: 'Do it!', hintText: 'Help me!', revealText: 'Show answer', colors: { primary: 'bg-blue-500', secondary: 'bg-green-500' }, emoji: '🎈', encouragement: 'Awesome work!' };
-      case 'middle':
-        return { buttonText: 'Try quiz', hintText: 'Hint', revealText: 'Reveal', colors: { primary: 'bg-blue-600', secondary: 'bg-green-600' }, emoji: '🚀', encouragement: 'You got this!' };
-      case 'older':
-        return { buttonText: 'Attempt quiz', hintText: 'AI explain', revealText: 'Reveal (cost)', colors: { primary: 'bg-blue-700', secondary: 'bg-green-700' }, emoji: '💡', encouragement: 'Keep going!' };
-    }
-  };
-
-  const ageStyles = getAgeGroupStyles();
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const learnerData = localStorage.getItem('learnerData');
-      if (!learnerData) {
-        navigate('/learner-auth');
-        return;
-      }
-
+      if (!learnerData) { navigate('/learner-auth'); return; }
       const parsedLearner = JSON.parse(learnerData);
       setLearner(parsedLearner);
-      setAgeGroup(calculateAgeGroup(parsedLearner.dob));
 
-      const { data: lessonsData, error: lessonsError } = await supabase.from('lessons').select('*');
-      if (lessonsError) throw lessonsError;
+      const { data: lessonsData } = await supabase.from('lessons').select('*');
       setLessons(lessonsData || []);
-      if (lessonsData?.length > 0) setCurrentLesson(lessonsData[0]);
 
-      const { data: quizzesData, error: quizzesError } = await supabase.from('quizzes').select('*');
-      if (quizzesError) throw quizzesError;
+      const { data: quizzesData } = await supabase.from('quizzes').select('*');
       setQuizzes(quizzesData || []);
 
-      const { data: progressData, error: progressError } = await supabase.from('progress').select('*').eq('learner_id', parsedLearner.id);
-      if (progressError) throw progressError;
-      setProgressData(progressData || []);
+      const { data: progress } = await supabase.from('progress').select('*').eq('learner_id', parsedLearner.id);
+      setProgressData(progress || []);
 
-      const { data: pointsData } = await supabase.from('points_balance').select('*').eq('learner_id', parsedLearner.id).single();
-      setPointsBalance(pointsData || { id: '', learner_id: parsedLearner.id, points: 0 });
+      const { data: points } = await supabase.from('points_balance').select('*').eq('learner_id', parsedLearner.id).single();
+      setPointsBalance(points || { points: 0 });
 
-      const { data: xpData } = await supabase.from('xp_balance').select('*').eq('learner_id', parsedLearner.id).single();
-      setXpBalance(xpData || { id: '', learner_id: parsedLearner.id, xp: 0 });
-
-      const { data: homeworkData } = await supabase.from('homework').select('*').eq('learner_id', parsedLearner.id).order('uploaded_at', { ascending: false });
-      setHomework(homeworkData || []);
-
-    } catch (error: any) {
-      showError('Failed to load dashboard: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
+      const { data: xp } = await supabase.from('xp_balance').select('*').eq('learner_id', parsedLearner.id).single();
+      setXpBalance(xp || { xp: 0 });
+    } catch (e) { showError('Error loading data'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNext();
+      if (e.key === 'ArrowLeft') handlePrev();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentLessonIndex, lessons.length]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('learnerData');
-    navigate('/learner-auth');
+  const handleNext = () => {
+    if (currentLessonIndex < lessons.length - 1) setCurrentLessonIndex(prev => prev + 1);
+  };
+
+  const handlePrev = () => {
+    if (currentLessonIndex > 0) setCurrentLessonIndex(prev => prev - 1);
   };
 
   const handleMarkAsDone = async () => {
+    const currentLesson = lessons[currentLessonIndex];
     if (!currentLesson || !learner) return;
-    const existingProgress = progressData.find(p => p.lesson_id === currentLesson.id);
-    if (existingProgress?.completed) return;
-
     setResultsSummaryData({ lessonId: currentLesson.id, score: 100, totalPoints: 100, taskType: 'lesson' });
     setShowResultsSummary(true);
-
-    await supabase.from('progress').upsert({
-      learner_id: learner.id,
-      lesson_id: currentLesson.id,
-      completed: true,
-      score: 100,
-      updated_at: new Date().toISOString()
-    });
+    await supabase.from('progress').upsert({ learner_id: learner.id, lesson_id: currentLesson.id, completed: true, score: 100, updated_at: new Date().toISOString() });
     fetchData();
   };
 
-  const handleQuizAnswer = async (quizId: string, chosenIndex: number) => {
-    const quiz = quizzes.find(q => q.id === quizId);
-    if (!quiz || !learner) return;
-    const isCorrect = chosenIndex === quiz.correct_index;
-    setQuizAttempts(prev => [...prev, { quizId, chosenIndex, correct: isCorrect }]);
-    if (isCorrect) {
-      showSuccess(`🎉 Correct! +${quiz.points_reward} 💎`);
-      fetchData();
-    } else {
-      showError('❌ Not quite! Try again!');
-    }
-  };
-
-  const getLevelFromXP = (xp: number) => {
-    if (xp >= 3000) return { level: 4, name: 'Master', progress: 100, emoji: '🏆' };
-    if (xp >= 1500) return { level: 3, name: 'Explorer', progress: Math.min(100, ((xp - 1500) / 1500) * 100), emoji: '🌟' };
-    if (xp >= 500) return { level: 2, name: 'Learner', progress: Math.min(100, ((xp - 500) / 1000) * 100), emoji: '📚' };
-    return { level: 1, name: 'Beginner', progress: Math.min(100, (xp / 500) * 100), emoji: '🐣' };
-  };
-
-  const levelInfo = xpBalance ? getLevelFromXP(xpBalance.xp) : { level: 1, name: 'Beginner', progress: 0, emoji: '🐣' };
-  const completedLessons = progressData.filter(p => p.completed).length;
-  const totalLessons = lessons.length;
-  const completionRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+  const currentLesson = lessons[currentLessonIndex];
   const lessonQuizzes = currentLesson ? quizzes.filter(q => q.lesson_id === currentLesson.id) : [];
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!learner) return null;
+  if (loading) return <div className="min-h-screen flex items-center justify-center dark:bg-black"><Loader2 className="animate-spin text-blue-600" /></div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-950 dark:to-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white">
       {showResultsSummary && resultsSummaryData && (
         <ResultsSummary {...resultsSummaryData} onContinue={() => setShowResultsSummary(false)} onClose={() => setShowResultsSummary(false)} />
       )}
 
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-600">Learnzaa</h1>
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-              <AvatarFallback className="bg-blue-600 text-white">{learner.name.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border z-50">
-                <Button onClick={handleLogout} className="w-full justify-start text-red-500" variant="ghost">
-                  <LogOut className="h-4 w-4 mr-2" /> Logout
-                </Button>
-              </div>
+          <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">Learnzaaac</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/learner-dashboard')} className="dark:text-white">
+              <Home className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => { localStorage.removeItem('learnerData'); navigate('/learner-auth'); }} className="text-red-500">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1 space-y-4">
+            <MonthlyWinnerCard />
+            <Leaderboard />
+            <AdUnit type="rectangle" />
+          </div>
+
+          <div className="lg:col-span-3 space-y-6">
+            <div className="flex justify-between items-center bg-white dark:bg-gray-900 p-4 rounded-xl border dark:border-gray-800 shadow-sm">
+              <Button variant="outline" onClick={handlePrev} disabled={currentLessonIndex === 0} className="dark:border-gray-700 dark:text-white">
+                <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+              </Button>
+              <span className="font-bold text-sm">Lesson {currentLessonIndex + 1} of {lessons.length}</span>
+              <Button variant="outline" onClick={handleNext} disabled={currentLessonIndex === lessons.length - 1} className="dark:border-gray-700 dark:text-white">
+                Next <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+
+            <AdUnit type="banner" />
+
+            {currentLesson && (
+              <Card className="dark:bg-gray-900 dark:border-gray-800">
+                <CardHeader>
+                  <CardTitle className="text-2xl">{currentLesson.title}</CardTitle>
+                  <Badge className="w-fit">{currentLesson.subject}</Badge>
+                </CardHeader>
+                <CardContent>
+                  <MarkdownRenderer content={currentLesson.md_content} lessonId={currentLesson.id} learnerId={learner.id} />
+                  
+                  <AdUnit type="banner" className="my-8" />
+
+                  <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                    <h3 className="font-bold mb-4 flex items-center gap-2"><BookOpen className="h-5 w-5" /> Homework Task</h3>
+                    <HomeworkUpload learnerId={learner.id} lessonId={currentLesson.id} onUploadSuccess={fetchData} />
+                  </div>
+
+                  <div className="mt-8 flex justify-center">
+                    <Button onClick={handleMarkAsDone} size="lg" className="bg-green-600 hover:bg-green-700 text-white px-12" disabled={progressData.some(p => p.lesson_id === currentLesson.id && p.completed)}>
+                      {progressData.some(p => p.lesson_id === currentLesson.id && p.completed) ? '✅ Lesson Completed' : '🎯 Finish Lesson'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </div>
-        </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="h-16 w-16 border-4 border-blue-100">
-                <AvatarFallback className="bg-blue-600 text-white text-xl">{learner.name.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <span className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full border-2 border-white">
-                {levelInfo.emoji} Lvl {levelInfo.level}
-              </span>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold dark:text-white">{learner.name}</h2>
-              <p className="text-gray-600 dark:text-gray-400">{learner.grade}</p>
-            </div>
-          </div>
+            <AdUnit type="banner" />
 
-          <div className="flex items-center space-x-4">
-            <Card className="p-3 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
-              <div className="flex items-center space-x-2">
-                <Star className="h-6 w-6 text-yellow-500" />
-                <span className="text-2xl font-bold dark:text-yellow-400">{pointsBalance?.points || 0}</span>
-                <span className="text-sm text-gray-500">💎</span>
-              </div>
-            </Card>
-            <Card className="p-3 bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
-              <div className="flex items-center space-x-2">
-                <Award className="h-6 w-6 text-purple-500" />
-                <div className="text-center">
-                  <div className="text-lg font-bold dark:text-purple-400">Level {levelInfo.level}</div>
-                  <Progress value={levelInfo.progress} className="mt-2 h-2" />
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <MonthlyWinnerCard />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid grid-cols-3 bg-white/50 backdrop-blur-sm dark:bg-gray-800/50">
-                <TabsTrigger value="lessons"><BookOpen className="h-4 w-4 mr-2" /> Lessons</TabsTrigger>
-                <TabsTrigger value="progress"><Star className="h-4 w-4 mr-2" /> Progress</TabsTrigger>
-                <TabsTrigger value="leaderboard"><Trophy className="h-4 w-4 mr-2" /> Leaderboard</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="lessons">
-                {currentLesson && (
-                  <Card className="border-2 border-blue-100 dark:border-blue-900">
-                    <CardHeader className="bg-blue-50 dark:bg-blue-900/20">
-                      <CardTitle className="dark:text-white">{currentLesson.title}</CardTitle>
-                      <CardDescription className="dark:text-blue-300">{currentLesson.subject}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-4">
-                      <MarkdownRenderer content={currentLesson.md_content} ageGroup={ageGroup} learnerId={learner.id} lessonId={currentLesson.id} />
-                      <div className="mt-8">
-                        <HomeworkUpload learnerId={learner.id} lessonId={currentLesson.id} onUploadSuccess={fetchData} />
+            {lessonQuizzes.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {lessonQuizzes.map((quiz: any) => (
+                  <Card key={quiz.id} className="dark:bg-gray-900 dark:border-gray-800 hover:border-blue-400 transition-colors cursor-pointer" onClick={() => { setSelectedQuiz(quiz); setIsModalOpen(true); }}>
+                    <CardContent className="p-4 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-yellow-100 dark:bg-yellow-900/40 p-2 rounded-lg"><Star className="h-5 w-5 text-yellow-600" /></div>
+                        <span className="font-bold text-sm truncate max-w-[150px]">{quiz.question}</span>
                       </div>
-                      <div className="mt-6 flex justify-end">
-                        <Button onClick={handleMarkAsDone} className={cn("px-6 py-3", ageStyles.colors.primary)} disabled={progressData.some(p => p.lesson_id === currentLesson.id && p.completed)}>
-                          {progressData.some(p => p.lesson_id === currentLesson.id && p.completed) ? '✅ Completed' : '🎯 Mark as Done'}
-                        </Button>
-                      </div>
+                      <Button size="sm" variant="ghost" className="text-blue-600">Start</Button>
                     </CardContent>
                   </Card>
-                )}
-                {lessonQuizzes.length > 0 && (
-                  <div className="mt-6 space-y-4">
-                    {lessonQuizzes.map((quiz) => (
-                      <Card key={quiz.id} className="hover:shadow-md cursor-pointer dark:bg-gray-800 dark:border-gray-700" onClick={() => { setSelectedQuiz(quiz); setIsModalOpen(true); }}>
-                        <CardContent className="p-4 flex justify-between items-center">
-                          <div>
-                            <h3 className="font-semibold dark:text-white">{quiz.question}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Reward: {quiz.points_reward} 💎</p>
-                          </div>
-                          <Button size="sm" className={ageStyles.colors.secondary}>{ageStyles.buttonText}</Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="progress">
-                <Card className="border-2 border-yellow-100 dark:border-yellow-900">
-                  <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20"><CardTitle className="dark:text-white">My Progress</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="text-center p-4 border rounded dark:border-gray-700">
-                        <div className="text-2xl font-bold dark:text-white">{completedLessons}</div>
-                        <div className="text-xs text-gray-500">Lessons</div>
-                      </div>
-                      <div className="text-center p-4 border rounded dark:border-gray-700">
-                        <div className="text-2xl font-bold dark:text-white">{pointsBalance?.points || 0}</div>
-                        <div className="text-xs text-gray-500">💎 Points</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="leaderboard">
-                <Leaderboard />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="border-2 border-blue-100 dark:border-blue-900">
-              <CardHeader className="bg-blue-50 dark:bg-blue-900/20"><CardTitle className="dark:text-white">Next Lessons</CardTitle></CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-3">
-                    {lessons.map((lesson) => (
-                      <div key={lesson.id} className="p-3 border rounded cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => setCurrentLesson(lesson)}>
-                        <h3 className="font-medium dark:text-white">{lesson.title}</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{lesson.subject}</p>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] dark:bg-gray-900 dark:border-gray-800">
-          <DialogHeader><DialogTitle className="dark:text-white">Quiz</DialogTitle></DialogHeader>
+        <DialogContent className="dark:bg-gray-900 dark:border-gray-800 dark:text-white">
+          <DialogHeader><DialogTitle>Quiz Time!</DialogTitle></DialogHeader>
           {selectedQuiz && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold dark:text-white">{selectedQuiz.question}</h3>
-              <div className="space-y-3">
-                {selectedQuiz.options.map((option, index) => (
-                  <Button key={index} className="w-full justify-start dark:text-white dark:border-gray-700" variant="outline" onClick={() => handleQuizAnswer(selectedQuiz.id, index)}>
-                    {String.fromCharCode(65 + index)}. {option}
-                  </Button>
+            <div className="space-y-4">
+              <p className="font-bold text-lg">{selectedQuiz.question}</p>
+              <div className="grid gap-2">
+                {selectedQuiz.options.map((opt: string, i: number) => (
+                  <Button key={i} variant="outline" className="justify-start dark:border-gray-700 dark:text-white" onClick={() => {
+                    if (i === selectedQuiz.correct_index) {
+                      showSuccess("Correct! +10 Points");
+                      setIsModalOpen(false);
+                      fetchData();
+                    } else {
+                      showError("Try again!");
+                    }
+                  }}>{opt}</Button>
                 ))}
               </div>
             </div>

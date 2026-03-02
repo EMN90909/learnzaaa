@@ -13,7 +13,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 import LearnerAuthPage from "./pages/LearnerAuthPage";
 import LearnerDashboard from "./pages/LearnerDashboard";
-import AddLearnerPage from "./pages/AddLearnerPage";
+import LearnersDashboard from "./pages/LearnersDashboard";
 import LearnerPage from "./pages/LearnerPage";
 import AboutPage from "./pages/AboutPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -39,21 +39,16 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/learner-auth" element={<LearnerAuthPage />} />
             <Route path="/super-admin-auth" element={<SuperAdminAuthPage />} />
-            {/* Protected Routes */}
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/lessons" element={<LessonsPage />} />
-              <Route path="/learners" element={<AddLearnerPage />} />
-              <Route path="/learners/add" element={<AddLearnerPage />} />
+              <Route path="/learners-dashboard" element={<LearnersDashboard />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
-            {/* Super Admin Routes */}
             <Route path="/super-admin-dashboard" element={<SuperAdminDashboard />} />
             <Route path="/(1415emn)2010" element={<SuperAdmin1415Page />} />
-            {/* Learner Dashboard Route */}
             <Route path="/learner-dashboard" element={<LearnerDashboard />} />
             <Route path="/learner-page" element={<LearnerPage />} />
-            {/* Public Pages */}
             <Route path="/about" element={<AboutPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
