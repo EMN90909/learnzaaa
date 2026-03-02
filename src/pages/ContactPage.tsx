@@ -217,7 +217,7 @@ const ContactPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="font-medium">General Inquiries</p>
-                      <p className="text-gray-600 dark:text-gray-400">info@learnzaa.com</p>
+                      <p className="text-gray-600 dark:text-gray-400">info@emtra.top</p>
                     </div>
                   </div>
 
@@ -227,7 +227,7 @@ const ContactPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="font-medium">Support</p>
-                      <p className="text-gray-600 dark:text-gray-400">support@learnzaa.com</p>
+                      <p className="text-gray-600 dark:text-gray-400">info@emtra.top</p>
                     </div>
                   </div>
 
@@ -237,7 +237,7 @@ const ContactPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="font-medium">Feedback</p>
-                      <p className="text-gray-600 dark:text-gray-400">feedback@learnzaa.com</p>
+                      <p className="text-gray-600 dark:text-gray-400">info@emtra.top</p>
                     </div>
                   </div>
                 </div>
@@ -258,11 +258,11 @@ const ContactPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="font-medium">Customer Support</p>
-                      <p className="text-gray-600 dark:text-gray-400">+254 700 123 456</p>
+                      <p className="text-gray-600 dark:text-gray-400">N/A</p>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Available Monday-Friday, 9AM-5PM EAT
+                    Available N/A 
                   </p>
                 </div>
               </CardContent>
