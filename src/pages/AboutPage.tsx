@@ -42,7 +42,7 @@ const AboutPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Learnzaa was founded by a passionate 15-year-old developer who wanted to make learning more engaging for students in Kenya.
+                Learnzaa was founded by Emmanuel Nasongo(EMN) a teen developer who wanted to make learning more engaging for students in Kenya.
               </p>
               <p className="text-gray-700 dark:text-gray-300">
                 What started as a small project has grown into a platform that helps hundreds of learners discover the joy of learning through interactive lessons, quizzes, and rewards.
@@ -84,9 +84,9 @@ const AboutPage: React.FC = () => {
                 <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Globe className="w-8 h-8 text-purple-600 dark:text-purple-300" />
                 </div>
-                <h3 className="font-semibold mb-2">Accessible Anywhere</h3>
+                <h3 className="font-semibold mb-2">Accessible in Kenya</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Access your learning materials from any device, anytime, anywhere.
+                  Access your learning materials from any device, anytimeonly in Kenya.
                 </p>
               </CardContent>
             </Card>
