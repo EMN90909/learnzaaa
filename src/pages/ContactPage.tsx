@@ -348,10 +348,10 @@ const ContactPage: React.FC = () => {
           <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Follow Us</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">Stay connected and get the latest updates</p>
           <div className="flex justify-center space-x-6">
-            <a href="#" className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors">
+            <a href="https://instagram.com/e_rr.or404" className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors">
               <Instagram className="w-6 h-6" />
             </a>
-            <a href="https://instagram.com/e_rr.or404" className="w-12 h-12 bg-blue-400 hover:bg-blue-500 rounded-full flex items-center justify-center text-white transition-colors">
+            <a href="" className="w-12 h-12 bg-blue-400 hover:bg-blue-500 rounded-full flex items-center justify-center text-white transition-colors">
               <Twitter className="w-6 h-6" />
             </a>
             <a href="#" className="w-12 h-12 bg-blue-800 hover:bg-blue-900 rounded-full flex items-center justify-center text-white transition-colors">
