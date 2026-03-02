@@ -282,7 +282,7 @@ const ContactPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="font-medium">Headquarters</p>
-                      <p className="text-gray-600 dark:text-gray-400">Nairobi, Kenya</p>
+                      <p className="text-gray-600 dark:text-gray-400">N/A</p>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
