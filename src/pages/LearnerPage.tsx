@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import HomeworkUpload from '@/components/HomeworkUpload';
 import ResultsSummary from '@/components/ResultsSummary';
